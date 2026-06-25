@@ -1,0 +1,263 @@
+<resources>
+    <string name="app_name">BuzzKill</string>
+
+    <!-- Common -->
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+    <string name="done">完成</string>
+    <string name="add">添加</string>
+    <string name="search">搜索</string>
+
+    <!-- Titles -->
+    <string name="rules_title">规则</string>
+    <string name="new_rule">新建规则</string>
+    <string name="edit_rule">编辑规则</string>
+    <string name="settings">设置</string>
+
+    <!-- Rule list -->
+    <string name="no_rules_title">还没有规则</string>
+    <string name="no_rules_body">点击 + 创建你的第一条规则。规则可过滤通知并执行替换文本、静音、自动回复等操作。</string>
+    <string name="access_required_title">需要通知使用权</string>
+    <string name="access_required_body">BuzzKill 需要通知使用权才能读取和修改你的通知。</string>
+    <string name="grant_access">授予权限</string>
+    <string name="summary_all_apps">所有应用</string>
+    <string name="summary_n_apps">%d 个应用</string>
+    <string name="summary_any_notification">任意通知</string>
+    <string name="summary_n_triggers">%d 个触发器</string>
+    <string name="summary_n_actions">%d 个动作</string>
+
+    <!-- Editor -->
+    <string name="section_apps">应用</string>
+    <string name="section_triggers">触发器</string>
+    <string name="section_conditions">条件</string>
+    <string name="section_actions">动作</string>
+    <string name="section_options">选项</string>
+    <string name="applies_all_apps">应用于所有应用</string>
+    <string name="select_apps">选择应用</string>
+    <string name="add_trigger">添加触发器</string>
+    <string name="add_condition">添加条件</string>
+    <string name="add_action">添加动作</string>
+    <string name="no_triggers_hint">无触发器 — 匹配所选应用的所有通知。</string>
+    <string name="no_actions_hint">还没有动作。至少添加一个，规则才会生效。</string>
+    <string name="rule_name">规则名称</string>
+    <string name="notes">备注</string>
+    <string name="enabled">已启用</string>
+    <string name="stop_processing">停止处理后续规则</string>
+    <string name="match_all">全部满足</string>
+    <string name="match_any">任一满足</string>
+
+    <!-- Dialog field labels -->
+    <string name="edit_trigger">编辑触发器</string>
+    <string name="edit_condition">编辑条件</string>
+    <string name="field">字段</string>
+    <string name="match">匹配方式</string>
+    <string name="query">关键词</string>
+    <string name="case_sensitive">区分大小写</string>
+    <string name="negate">取反 (NOT)</string>
+    <string name="must_be_ongoing">必须是常驻通知</string>
+    <string name="must_have_reply">必须含回复操作</string>
+    <string name="find">查找</string>
+    <string name="replace_with">替换为</string>
+    <string name="regex">正则表达式</string>
+    <string name="template">模板</string>
+    <string name="template_hint">占位符：{title} {text} {app} {1}…{9}（正则分组）{var:name}</string>
+    <string name="importance">重要级别</string>
+    <string name="bypass_dnd">绕过勿扰模式</string>
+    <string name="silence">静音</string>
+    <string name="vibration">震动</string>
+    <string name="sound_uri">声音 URI（可选）</string>
+    <string name="reply_message">回复内容</string>
+    <string name="spoken_template">朗读模板</string>
+    <string name="toast_template">Toast 模板</string>
+    <string name="variable_name">变量名</string>
+    <string name="value_template">值模板</string>
+    <string name="tasker_task">Tasker 任务名</string>
+    <string name="url">URL</string>
+    <string name="method">请求方法</string>
+    <string name="body_template">请求体模板</string>
+    <string name="minutes">分钟</string>
+    <string name="seconds">秒</string>
+    <string name="delay_ms">延迟（毫秒）</string>
+    <string name="duration_ms">时长（毫秒）</string>
+    <string name="percent">百分比</string>
+    <string name="discard_explain">该通知将被完全隐藏。</string>
+    <string name="start_time">开始时间</string>
+    <string name="end_time">结束时间</string>
+    <string name="cond_days">星期</string>
+    <string name="when_below">低于时（否则高于）</string>
+    <string name="screen_must_on">屏幕必须点亮</string>
+    <string name="must_be_charging">必须在充电</string>
+
+    <!-- Day types / holidays -->
+    <string name="section_day_types">日期类型</string>
+    <string name="daytype_legal_holiday">法定节假日</string>
+    <string name="daytype_makeup_workday">调休上班日</string>
+    <string name="daytype_weekend">周末</string>
+    <string name="daytype_workday">工作日</string>
+    <string name="holiday_coverage">中国节假日数据：2025（已核对）、2026（暂定）。</string>
+
+    <!-- Settings -->
+    <string name="settings_general">通用</string>
+    <string name="settings_master">启用 BuzzKill</string>
+    <string name="settings_log">记录活动</string>
+    <string name="settings_access">通知使用权</string>
+    <string name="access_granted">已授予 — BuzzKill 可读取和修改通知。</string>
+    <string name="access_not_granted">未授予。没有它 BuzzKill 无法工作。</string>
+    <string name="open_access_settings">打开权限设置</string>
+    <string name="settings_backup">备份</string>
+    <string name="export_rules">导出规则到剪贴板</string>
+    <string name="import_rules">导入规则</string>
+    <string name="import_paste">粘贴导出的 JSON</string>
+    <string name="export_copied">规则已复制到剪贴板</string>
+    <string name="import_done">已导入 %d 条规则</string>
+    <string name="import_failed">导入失败</string>
+    <string name="settings_appearance">外观</string>
+    <string name="settings_theme">主题</string>
+    <string name="theme_system">跟随系统</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="settings_language">语言</string>
+    <string name="lang_system">跟随系统</string>
+    <string name="lang_en">English</string>
+    <string name="lang_zh">中文</string>
+    <string name="settings_about">BuzzKill · 净室实现的通知自动化</string>
+
+    <!-- Enum: notification field -->
+    <string name="field_title">标题</string>
+    <string name="field_text">内容</string>
+    <string name="field_bigtext">展开内容</string>
+    <string name="field_subtext">子文本</string>
+    <string name="field_infotext">信息文本</string>
+    <string name="field_ticker">Ticker</string>
+    <string name="field_appname">应用名</string>
+    <string name="field_any">任意字段</string>
+
+    <!-- Enum: match mode -->
+    <string name="match_contains">包含</string>
+    <string name="match_equals">等于</string>
+    <string name="match_starts">以…开头</string>
+    <string name="match_ends">以…结尾</string>
+    <string name="match_regex">匹配正则</string>
+    <string name="match_wildcard">匹配通配符</string>
+
+    <!-- Enum: importance -->
+    <string name="imp_min">最低 — 无声、折叠</string>
+    <string name="imp_low">低 — 无声</string>
+    <string name="imp_default">默认</string>
+    <string name="imp_high">高 — 横幅</string>
+    <string name="imp_urgent">紧急 — 横幅 + 声音</string>
+
+    <!-- Enum: vibration -->
+    <string name="vib_none">无</string>
+    <string name="vib_short">短促</string>
+    <string name="vib_normal">普通</string>
+    <string name="vib_double">双震</string>
+    <string name="vib_long">长震</string>
+    <string name="vib_heartbeat">心跳</string>
+
+    <!-- Catalog: triggers -->
+    <string name="cat_trig_text">文本匹配</string>
+    <string name="cat_trig_text_desc">匹配字段中的关键词或正则</string>
+    <string name="cat_trig_ongoing">常驻状态</string>
+    <string name="cat_trig_ongoing_desc">匹配常驻（音乐/下载）或可清除通知</string>
+    <string name="cat_trig_reply">含回复操作</string>
+    <string name="cat_trig_reply_desc">匹配带内联回复的聊天通知</string>
+
+    <!-- Catalog: conditions -->
+    <string name="cat_cond_time">时间段</string>
+    <string name="cat_cond_time_desc">仅在每日时间段 / 指定星期内</string>
+    <string name="cat_cond_charging">充电</string>
+    <string name="cat_cond_charging_desc">仅在充电或使用电池时</string>
+    <string name="cat_cond_screen">屏幕状态</string>
+    <string name="cat_cond_screen_desc">仅在屏幕点亮或熄灭时</string>
+    <string name="cat_cond_battery">电量</string>
+    <string name="cat_cond_battery_desc">仅在电量高于/低于某百分比时</string>
+    <string name="cat_cond_cooldown">冷却</string>
+    <string name="cat_cond_cooldown_desc">限制规则触发频率</string>
+    <string name="cat_cond_holiday">节假日 / 日期类型</string>
+    <string name="cat_cond_holiday_desc">中国法定节假日、调休上班日、周末</string>
+
+    <!-- Catalog: actions -->
+    <string name="cat_act_replace">替换文本</string>
+    <string name="cat_act_replace_desc">在字段中查找/替换（可用正则）</string>
+    <string name="cat_act_setfield">设置字段</string>
+    <string name="cat_act_setfield_desc">用模板覆盖标题/内容</string>
+    <string name="cat_act_discard">丢弃</string>
+    <string name="cat_act_discard_desc">完全隐藏该通知</string>
+    <string name="cat_act_dismiss">消除</string>
+    <string name="cat_act_dismiss_desc">从通知栏移除，可延迟</string>
+    <string name="cat_act_snooze">稍后提醒</string>
+    <string name="cat_act_snooze_desc">先隐藏，稍后再出现</string>
+    <string name="cat_act_importance">调整重要级别</string>
+    <string name="cat_act_importance_desc">提高/降低级别，绕过勿扰</string>
+    <string name="cat_act_sound">声音和震动</string>
+    <string name="cat_act_sound_desc">静音或自定义震动</string>
+    <string name="cat_act_autoreply">自动回复</string>
+    <string name="cat_act_autoreply_desc">自动回复聊天消息</string>
+    <string name="cat_act_readaloud">朗读</string>
+    <string name="cat_act_readaloud_desc">用 TTS 朗读通知</string>
+    <string name="cat_act_wake">唤醒屏幕</string>
+    <string name="cat_act_wake_desc">短暂点亮屏幕</string>
+    <string name="cat_act_toast">显示 Toast</string>
+    <string name="cat_act_toast_desc">弹出一条短消息</string>
+    <string name="cat_act_setvar">设置变量</string>
+    <string name="cat_act_setvar_desc">存储一个值供后续模板使用</string>
+    <string name="cat_act_tasker">运行 Tasker 任务</string>
+    <string name="cat_act_tasker_desc">按名称触发 Tasker 任务</string>
+    <string name="cat_act_webhook">Webhook</string>
+    <string name="cat_act_webhook_desc">发送 HTTP 请求</string>
+    <string name="cat_act_mute">静音应用</string>
+    <string name="cat_act_mute_desc">暂时屏蔽该应用</string>
+
+    <!-- Summaries -->
+    <string name="sum_not_prefix">非 </string>
+    <string name="sum_text">%1$s %2$s「%3$s」</string>
+    <string name="sum_ongoing_yes">常驻通知</string>
+    <string name="sum_ongoing_no">可清除通知</string>
+    <string name="sum_reply_yes">含内联回复操作</string>
+    <string name="sum_reply_no">无回复操作</string>
+    <string name="sum_every_day">每天</string>
+    <string name="sum_time">%1$s–%2$s（%3$s）</string>
+    <string name="sum_charging">充电时</string>
+    <string name="sum_on_battery">使用电池时</string>
+    <string name="sum_screen_on">屏幕点亮时</string>
+    <string name="sum_screen_off">屏幕熄灭时</string>
+    <string name="sum_battery_below">电量低于 %d%%</string>
+    <string name="sum_battery_above">电量高于 %d%%</string>
+    <string name="sum_cooldown">每 %d 秒最多一次</string>
+    <string name="sum_holiday">日期类型：%s</string>
+    <string name="sum_act_replace">在 %3$s 中将「%1$s」→「%2$s」</string>
+    <string name="sum_act_setfield">将 %1$s 设为「%2$s」</string>
+    <string name="sum_act_discard">丢弃通知</string>
+    <string name="sum_act_dismiss">消除通知</string>
+    <string name="sum_act_dismiss_delay">%d 毫秒后消除</string>
+    <string name="sum_act_snooze">稍后提醒 %d 分钟</string>
+    <string name="sum_act_importance">设为 %s</string>
+    <string name="sum_act_bypass_dnd"> + 绕过勿扰</string>
+    <string name="sum_act_sound">声音/震动：%s</string>
+    <string name="sum_act_silence">静音并取消震动</string>
+    <string name="sum_act_autoreply">自动回复「%s」</string>
+    <string name="sum_act_readaloud">朗读「%s」</string>
+    <string name="sum_act_wake">点亮屏幕 %d 毫秒</string>
+    <string name="sum_act_toast">Toast「%s」</string>
+    <string name="sum_act_setvar">设置 $%1$s =「%2$s」</string>
+    <string name="sum_act_tasker">运行 Tasker 任务「%s」</string>
+    <string name="sum_act_webhook">%1$s %2$s</string>
+    <string name="sum_act_mute">静音该应用 %d 分钟</string>
+
+    <string-array name="weekday_abbr">
+        <item>一</item>
+        <item>二</item>
+        <item>三</item>
+        <item>四</item>
+        <item>五</item>
+        <item>六</item>
+        <item>日</item>
+    </string-array>
+
+    <!-- Notification channels -->
+    <string name="channel_activity">BuzzKill 活动</string>
+    <string name="channel_activity_desc">BuzzKill 服务状态</string>
+    <string name="channel_modified">已修改（%s）</string>
+</resources>

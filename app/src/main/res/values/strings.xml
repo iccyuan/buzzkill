@@ -1,0 +1,263 @@
+<resources>
+    <string name="app_name">BuzzKill</string>
+
+    <!-- Common -->
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="done">Done</string>
+    <string name="add">Add</string>
+    <string name="search">Search</string>
+
+    <!-- Titles -->
+    <string name="rules_title">Rules</string>
+    <string name="new_rule">New rule</string>
+    <string name="edit_rule">Edit rule</string>
+    <string name="settings">Settings</string>
+
+    <!-- Rule list -->
+    <string name="no_rules_title">No rules yet</string>
+    <string name="no_rules_body">Tap + to create your first rule. A rule filters notifications and runs actions like replacing text, muting, auto-replying, and more.</string>
+    <string name="access_required_title">Notification access required</string>
+    <string name="access_required_body">BuzzKill needs notification access to read and modify your notifications.</string>
+    <string name="grant_access">Grant access</string>
+    <string name="summary_all_apps">All apps</string>
+    <string name="summary_n_apps">%d app(s)</string>
+    <string name="summary_any_notification">any notification</string>
+    <string name="summary_n_triggers">%d trigger(s)</string>
+    <string name="summary_n_actions">%d action(s)</string>
+
+    <!-- Editor -->
+    <string name="section_apps">Apps</string>
+    <string name="section_triggers">Triggers</string>
+    <string name="section_conditions">Conditions</string>
+    <string name="section_actions">Actions</string>
+    <string name="section_options">Options</string>
+    <string name="applies_all_apps">Applies to all apps</string>
+    <string name="select_apps">Select apps</string>
+    <string name="add_trigger">Add trigger</string>
+    <string name="add_condition">Add condition</string>
+    <string name="add_action">Add action</string>
+    <string name="no_triggers_hint">No triggers — matches every notification from the selected apps.</string>
+    <string name="no_actions_hint">No actions yet. Add at least one for the rule to do something.</string>
+    <string name="rule_name">Rule name</string>
+    <string name="notes">Notes</string>
+    <string name="enabled">Enabled</string>
+    <string name="stop_processing">Stop processing further rules</string>
+    <string name="match_all">Match all</string>
+    <string name="match_any">Match any</string>
+
+    <!-- Dialog field labels -->
+    <string name="edit_trigger">Edit trigger</string>
+    <string name="edit_condition">Edit condition</string>
+    <string name="field">Field</string>
+    <string name="match">Match</string>
+    <string name="query">Query</string>
+    <string name="case_sensitive">Case sensitive</string>
+    <string name="negate">Negate (NOT)</string>
+    <string name="must_be_ongoing">Must be ongoing</string>
+    <string name="must_have_reply">Must have reply action</string>
+    <string name="find">Find</string>
+    <string name="replace_with">Replace with</string>
+    <string name="regex">Regex</string>
+    <string name="template">Template</string>
+    <string name="template_hint">Placeholders: {title} {text} {app} {1}…{9} (regex groups) {var:name}</string>
+    <string name="importance">Importance</string>
+    <string name="bypass_dnd">Bypass Do Not Disturb</string>
+    <string name="silence">Silence</string>
+    <string name="vibration">Vibration</string>
+    <string name="sound_uri">Sound URI (optional)</string>
+    <string name="reply_message">Reply message</string>
+    <string name="spoken_template">Spoken template</string>
+    <string name="toast_template">Toast template</string>
+    <string name="variable_name">Variable name</string>
+    <string name="value_template">Value template</string>
+    <string name="tasker_task">Tasker task name</string>
+    <string name="url">URL</string>
+    <string name="method">Method</string>
+    <string name="body_template">Body template</string>
+    <string name="minutes">Minutes</string>
+    <string name="seconds">Seconds</string>
+    <string name="delay_ms">Delay (ms)</string>
+    <string name="duration_ms">Duration (ms)</string>
+    <string name="percent">Percent</string>
+    <string name="discard_explain">This notification will be hidden entirely.</string>
+    <string name="start_time">Start time</string>
+    <string name="end_time">End time</string>
+    <string name="cond_days">Days</string>
+    <string name="when_below">When below (else above)</string>
+    <string name="screen_must_on">Screen must be on</string>
+    <string name="must_be_charging">Must be charging</string>
+
+    <!-- Day types / holidays -->
+    <string name="section_day_types">Day types</string>
+    <string name="daytype_legal_holiday">Legal holiday</string>
+    <string name="daytype_makeup_workday">Make-up workday</string>
+    <string name="daytype_weekend">Weekend</string>
+    <string name="daytype_workday">Workday</string>
+    <string name="holiday_coverage">CN holiday data: 2025 (verified), 2026 (provisional).</string>
+
+    <!-- Settings -->
+    <string name="settings_general">General</string>
+    <string name="settings_master">BuzzKill enabled</string>
+    <string name="settings_log">Log activity</string>
+    <string name="settings_access">Notification access</string>
+    <string name="access_granted">Granted — BuzzKill can read and modify notifications.</string>
+    <string name="access_not_granted">Not granted. BuzzKill cannot work without it.</string>
+    <string name="open_access_settings">Open access settings</string>
+    <string name="settings_backup">Backup</string>
+    <string name="export_rules">Export rules to clipboard</string>
+    <string name="import_rules">Import rules</string>
+    <string name="import_paste">Paste exported JSON</string>
+    <string name="export_copied">Rules copied to clipboard</string>
+    <string name="import_done">Imported %d rule(s)</string>
+    <string name="import_failed">Import failed</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_system">Follow system</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_language">Language</string>
+    <string name="lang_system">Follow system</string>
+    <string name="lang_en">English</string>
+    <string name="lang_zh">中文</string>
+    <string name="settings_about">BuzzKill · clean-room notification automation</string>
+
+    <!-- Enum: notification field -->
+    <string name="field_title">Title</string>
+    <string name="field_text">Text</string>
+    <string name="field_bigtext">Expanded text</string>
+    <string name="field_subtext">Sub text</string>
+    <string name="field_infotext">Info text</string>
+    <string name="field_ticker">Ticker</string>
+    <string name="field_appname">App name</string>
+    <string name="field_any">Any field</string>
+
+    <!-- Enum: match mode -->
+    <string name="match_contains">contains</string>
+    <string name="match_equals">equals</string>
+    <string name="match_starts">starts with</string>
+    <string name="match_ends">ends with</string>
+    <string name="match_regex">matches regex</string>
+    <string name="match_wildcard">matches wildcard</string>
+
+    <!-- Enum: importance -->
+    <string name="imp_min">Min — no sound, collapsed</string>
+    <string name="imp_low">Low — no sound</string>
+    <string name="imp_default">Default</string>
+    <string name="imp_high">High — peek</string>
+    <string name="imp_urgent">Urgent — peek + sound</string>
+
+    <!-- Enum: vibration -->
+    <string name="vib_none">None</string>
+    <string name="vib_short">Short tick</string>
+    <string name="vib_normal">Normal</string>
+    <string name="vib_double">Double buzz</string>
+    <string name="vib_long">Long</string>
+    <string name="vib_heartbeat">Heartbeat</string>
+
+    <!-- Catalog: triggers -->
+    <string name="cat_trig_text">Text match</string>
+    <string name="cat_trig_text_desc">Match a keyword or regex in a field</string>
+    <string name="cat_trig_ongoing">Ongoing state</string>
+    <string name="cat_trig_ongoing_desc">Match ongoing (music/downloads) or dismissible</string>
+    <string name="cat_trig_reply">Has reply action</string>
+    <string name="cat_trig_reply_desc">Match chat notifications with inline reply</string>
+
+    <!-- Catalog: conditions -->
+    <string name="cat_cond_time">Time of day</string>
+    <string name="cat_cond_time_desc">Only during a daily time window / days</string>
+    <string name="cat_cond_charging">Charging</string>
+    <string name="cat_cond_charging_desc">Only while charging or on battery</string>
+    <string name="cat_cond_screen">Screen state</string>
+    <string name="cat_cond_screen_desc">Only while screen on or off</string>
+    <string name="cat_cond_battery">Battery level</string>
+    <string name="cat_cond_battery_desc">Only above/below a battery percentage</string>
+    <string name="cat_cond_cooldown">Cooldown</string>
+    <string name="cat_cond_cooldown_desc">Limit how often this rule fires</string>
+    <string name="cat_cond_holiday">Holiday / day type</string>
+    <string name="cat_cond_holiday_desc">CN statutory holidays, make-up workdays, weekends</string>
+
+    <!-- Catalog: actions -->
+    <string name="cat_act_replace">Replace text</string>
+    <string name="cat_act_replace_desc">Find/replace in a field (regex optional)</string>
+    <string name="cat_act_setfield">Set field</string>
+    <string name="cat_act_setfield_desc">Overwrite title/text with a template</string>
+    <string name="cat_act_discard">Discard</string>
+    <string name="cat_act_discard_desc">Hide the notification entirely</string>
+    <string name="cat_act_dismiss">Dismiss</string>
+    <string name="cat_act_dismiss_desc">Remove from the shade, optionally delayed</string>
+    <string name="cat_act_snooze">Snooze</string>
+    <string name="cat_act_snooze_desc">Hide and bring back later</string>
+    <string name="cat_act_importance">Change importance</string>
+    <string name="cat_act_importance_desc">Raise/lower importance, bypass DND</string>
+    <string name="cat_act_sound">Sound &amp; vibration</string>
+    <string name="cat_act_sound_desc">Silence or set a custom buzz</string>
+    <string name="cat_act_autoreply">Auto-reply</string>
+    <string name="cat_act_autoreply_desc">Reply automatically to chats</string>
+    <string name="cat_act_readaloud">Read aloud</string>
+    <string name="cat_act_readaloud_desc">Speak the notification via TTS</string>
+    <string name="cat_act_wake">Wake screen</string>
+    <string name="cat_act_wake_desc">Briefly turn on the screen</string>
+    <string name="cat_act_toast">Show toast</string>
+    <string name="cat_act_toast_desc">Pop a short on-screen message</string>
+    <string name="cat_act_setvar">Set variable</string>
+    <string name="cat_act_setvar_desc">Store a value for later templates</string>
+    <string name="cat_act_tasker">Run Tasker task</string>
+    <string name="cat_act_tasker_desc">Trigger a Tasker task by name</string>
+    <string name="cat_act_webhook">Webhook</string>
+    <string name="cat_act_webhook_desc">Send an HTTP request</string>
+    <string name="cat_act_mute">Mute app</string>
+    <string name="cat_act_mute_desc">Suppress this app for a while</string>
+
+    <!-- Summaries -->
+    <string name="sum_not_prefix">NOT </string>
+    <string name="sum_text">%1$s %2$s \"%3$s\"</string>
+    <string name="sum_ongoing_yes">Notification is ongoing</string>
+    <string name="sum_ongoing_no">Notification is dismissible</string>
+    <string name="sum_reply_yes">Has an inline reply action</string>
+    <string name="sum_reply_no">Has no reply action</string>
+    <string name="sum_every_day">every day</string>
+    <string name="sum_time">%1$s–%2$s (%3$s)</string>
+    <string name="sum_charging">While charging</string>
+    <string name="sum_on_battery">While on battery</string>
+    <string name="sum_screen_on">While screen is on</string>
+    <string name="sum_screen_off">While screen is off</string>
+    <string name="sum_battery_below">Battery below %d%%</string>
+    <string name="sum_battery_above">Battery above %d%%</string>
+    <string name="sum_cooldown">At most once every %ds</string>
+    <string name="sum_holiday">Day type: %s</string>
+    <string name="sum_act_replace">Replace \"%1$s\" → \"%2$s\" in %3$s</string>
+    <string name="sum_act_setfield">Set %1$s to \"%2$s\"</string>
+    <string name="sum_act_discard">Discard notification</string>
+    <string name="sum_act_dismiss">Dismiss notification</string>
+    <string name="sum_act_dismiss_delay">Dismiss after %dms</string>
+    <string name="sum_act_snooze">Snooze for %dm</string>
+    <string name="sum_act_importance">Set importance %s</string>
+    <string name="sum_act_bypass_dnd"> + bypass DND</string>
+    <string name="sum_act_sound">Sound/vibration: %s</string>
+    <string name="sum_act_silence">Silence sound &amp; vibration</string>
+    <string name="sum_act_autoreply">Auto-reply \"%s\"</string>
+    <string name="sum_act_readaloud">Read aloud \"%s\"</string>
+    <string name="sum_act_wake">Wake screen for %dms</string>
+    <string name="sum_act_toast">Toast \"%s\"</string>
+    <string name="sum_act_setvar">Set $%1$s = \"%2$s\"</string>
+    <string name="sum_act_tasker">Run Tasker task \"%s\"</string>
+    <string name="sum_act_webhook">%1$s %2$s</string>
+    <string name="sum_act_mute">Mute this app for %dm</string>
+
+    <string-array name="weekday_abbr">
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+        <item>Sun</item>
+    </string-array>
+
+    <!-- Notification channels -->
+    <string name="channel_activity">BuzzKill activity</string>
+    <string name="channel_activity_desc">Status of the BuzzKill service</string>
+    <string name="channel_modified">Modified (%s)</string>
+</resources>
