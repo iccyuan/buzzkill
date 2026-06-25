@@ -230,6 +230,9 @@ fun RuleEditorScreen(
                 }
             }
 
+            // Live preview of recent notifications that match this rule.
+            PreviewSection(rule)
+
             if (ruleId != 0L) {
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     IOSFilledButton(
@@ -300,6 +303,39 @@ private fun AddRow(
     onClick: () -> Unit,
 ) {
     IOSRow(title = label, icon = icon, iconColor = color, onClick = onClick)
+}
+
+/** Recent logged notifications that match the current (unsaved) rule's app + triggers. */
+@Composable
+private fun PreviewSection(rule: com.buzzkill.data.model.Rule) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val engine = remember { com.buzzkill.engine.RuleEngine() }
+    val logs by androidx.compose.runtime.produceState(
+        initialValue = emptyList<com.buzzkill.data.model.NotificationLog>(),
+    ) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            com.buzzkill.data.NotificationLogRepository.get(context).recent(200)
+        }
+    }
+    val matches = remember(rule, logs) {
+        logs.filter { engine.previewMatches(rule, it.packageName, it.title, it.text) }
+            .distinctBy { it.packageName + "|" + it.title + "|" + it.text }
+            .take(15)
+    }
+    InsetGroupedSection(
+        header = stringResource(R.string.preview_title),
+        footer = stringResource(R.string.preview_hint),
+    ) {
+        if (matches.isEmpty()) {
+            IOSRow(title = stringResource(R.string.preview_none))
+        } else {
+            matches.forEachIndexed { i, log ->
+                if (i > 0) HairlineDivider(startInset = 16.dp)
+                val sub = listOf(log.title, log.text).filter { it.isNotBlank() }.joinToString(" · ")
+                IOSRow(title = log.appName, subtitle = sub.ifBlank { null })
+            }
+        }
+    }
 }
 
 /** Selected apps shown as logo + name chips; tapping anywhere opens the picker. */

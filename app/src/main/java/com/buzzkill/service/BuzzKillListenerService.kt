@@ -32,6 +32,7 @@ class BuzzKillListenerService : NotificationListenerService() {
     private val engine = RuleEngine()
 
     private lateinit var repository: RuleRepository
+    private lateinit var logRepository: com.buzzkill.data.NotificationLogRepository
     private lateinit var settings: SettingsStore
     private lateinit var channels: ChannelManager
     private lateinit var modifier: NotificationModifier
@@ -40,11 +41,13 @@ class BuzzKillListenerService : NotificationListenerService() {
 
     @Volatile private var activeRules: List<Rule> = emptyList()
     @Volatile private var masterEnabled: Boolean = true
+    @Volatile private var logActivity: Boolean = true
     @Volatile private var connected: Boolean = false
 
     override fun onCreate() {
         super.onCreate()
         repository = RuleRepository.get(this)
+        logRepository = com.buzzkill.data.NotificationLogRepository.get(this)
         settings = SettingsStore.get(this)
         channels = ChannelManager(this)
         modifier = NotificationModifier(this, channels)
@@ -59,6 +62,7 @@ class BuzzKillListenerService : NotificationListenerService() {
             }
         }
         scope.launch { settings.masterEnabled.collectLatest { masterEnabled = it } }
+        scope.launch { settings.logActivity.collectLatest { logActivity = it } }
         Log.i(TAG, "service onCreate")
     }
 
@@ -92,12 +96,6 @@ class BuzzKillListenerService : NotificationListenerService() {
     }
 
     private suspend fun process(sbn: StatusBarNotification) {
-        val rules = activeRules
-        if (rules.isEmpty()) {
-            Log.i(TAG, "no active rules; skipping ${sbn.packageName}")
-            return
-        }
-
         val device = DeviceState.sample(this)
         val appName = NotificationFields.appLabel(this, sbn.packageName)
         val ctx = MatchContext(
@@ -109,16 +107,39 @@ class BuzzKillListenerService : NotificationListenerService() {
             device = device,
         )
 
-        val decision = engine.evaluate(ctx, rules)
-        Log.i(
-            TAG,
-            "evaluated ${sbn.packageName} title='${ctx.fields[com.buzzkill.data.model.NotificationField.TITLE]}' " +
-                "matched=${decision.matched} fired=${decision.firedRuleIds} repost=${decision.needsRepost} discard=${decision.discard}"
-        )
-        if (!decision.matched) return
+        val decision = engine.evaluate(ctx, activeRules)
+        if (decision.matched) {
+            applyDecision(sbn, decision, appName)
+            recordFires(decision)
+        }
+        if (logActivity) logNotification(sbn, appName, decision)
+    }
 
-        applyDecision(sbn, decision, appName)
-        recordFires(decision)
+    private suspend fun logNotification(sbn: StatusBarNotification, appName: String, decision: Decision) {
+        val extras = sbn.notification.extras
+        val title = extras.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString().orEmpty()
+        val text = extras.getCharSequence(android.app.Notification.EXTRA_TEXT)?.toString().orEmpty()
+        val outcome = when {
+            decision.discard -> com.buzzkill.data.model.NotificationLog.OUTCOME_DISCARDED
+            decision.needsRepost -> com.buzzkill.data.model.NotificationLog.OUTCOME_MODIFIED
+            decision.snoozeMinutes != null -> com.buzzkill.data.model.NotificationLog.OUTCOME_SNOOZED
+            decision.dismiss -> com.buzzkill.data.model.NotificationLog.OUTCOME_DISMISSED
+            else -> com.buzzkill.data.model.NotificationLog.OUTCOME_NONE
+        }
+        runCatching {
+            logRepository.add(
+                com.buzzkill.data.model.NotificationLog(
+                    time = sbn.postTime.takeIf { it > 0 } ?: System.currentTimeMillis(),
+                    packageName = sbn.packageName,
+                    appName = appName,
+                    title = title,
+                    text = text,
+                    matched = decision.matched,
+                    firedRuleIds = decision.firedRuleIds.joinToString(","),
+                    outcome = outcome,
+                )
+            )
+        }
     }
 
     private fun applyDecision(sbn: StatusBarNotification, decision: Decision, appName: String) {

@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.buzzkill.ui.editor.RuleEditorScreen
+import com.buzzkill.ui.history.HistoryScreen
 import com.buzzkill.ui.list.RuleListScreen
 import com.buzzkill.ui.settings.SettingsScreen
 
@@ -16,6 +17,7 @@ object Routes {
     const val LIST = "rules"
     const val EDITOR = "editor/{ruleId}"
     const val SETTINGS = "settings"
+    const val HISTORY = "history"
     fun editor(ruleId: Long) = "editor/$ruleId"
 }
 
@@ -37,6 +39,7 @@ fun BuzzKillNavHost() {
                 onOpenRule = { id -> nav.navigate(Routes.editor(id)) },
                 onNewRule = { nav.navigate(Routes.editor(0L)) },
                 onOpenSettings = { nav.navigate(Routes.SETTINGS) },
+                onOpenHistory = { nav.navigate(Routes.HISTORY) },
             )
         }
         composable(
@@ -51,6 +54,9 @@ fun BuzzKillNavHost() {
         }
         composable(Routes.SETTINGS) {
             SettingsScreen(onBack = { nav.popBackStack() })
+        }
+        composable(Routes.HISTORY) {
+            HistoryScreen(onBack = { nav.popBackStack() })
         }
     }
 }

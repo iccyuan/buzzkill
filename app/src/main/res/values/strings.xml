@@ -16,6 +16,23 @@
     <string name="new_rule">New rule</string>
     <string name="edit_rule">Edit rule</string>
     <string name="settings">Settings</string>
+    <string name="nav_history">Activity</string>
+    <string name="history_clear">Clear</string>
+    <string name="history_empty">No notification activity recorded yet.</string>
+    <string name="group_by_day">By day</string>
+    <string name="group_by_week">By week</string>
+    <string name="filter_all_apps">All apps</string>
+    <string name="stat_peak_hour">Peak time</string>
+    <string name="stat_busiest_day">Busiest day</string>
+    <string name="stat_total">%d notifications</string>
+    <string name="outcome_modified">Modified</string>
+    <string name="outcome_discarded">Discarded</string>
+    <string name="outcome_dismissed">Dismissed</string>
+    <string name="outcome_snoozed">Snoozed</string>
+    <string name="outcome_matched">Matched</string>
+    <string name="preview_title">Live preview</string>
+    <string name="preview_hint">Recent notifications that match this rule</string>
+    <string name="preview_none">No recent notifications match yet</string>
 
     <!-- Rule list -->
     <string name="no_rules_title">No rules yet</string>
@@ -254,6 +271,16 @@
     <string name="sum_act_tasker">Run Tasker task \"%s\"</string>
     <string name="sum_act_webhook">%1$s %2$s</string>
     <string name="sum_act_mute">Mute this app for %dm</string>
+
+    <string-array name="weekday_full">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
 
     <string-array name="weekday_abbr">
         <item>Mon</item>

@@ -2,6 +2,7 @@ package com.buzzkill.engine
 
 import com.buzzkill.data.model.Action
 import com.buzzkill.data.model.Condition
+import com.buzzkill.data.model.DayType
 import com.buzzkill.data.model.LogicMode
 import com.buzzkill.data.model.NotificationField
 import com.buzzkill.data.model.Rule
@@ -13,6 +14,18 @@ import com.buzzkill.data.model.VibrationPreset
  * produces a [Decision]. Has no Android dependencies so it is unit-testable.
  */
 class RuleEngine {
+
+    /**
+     * Editor live-preview: does this notification's app + triggers match the rule?
+     * Ignores time/holiday/device conditions (those are about *when*, not content).
+     */
+    fun previewMatches(rule: Rule, packageName: String, title: String, text: String): Boolean {
+        val fields = mutableMapOf<NotificationField, String>()
+        if (title.isNotEmpty()) fields[NotificationField.TITLE] = title
+        if (text.isNotEmpty()) fields[NotificationField.TEXT] = text
+        val ctx = MatchContext(packageName, "", fields, false, false, PREVIEW_DEVICE)
+        return appMatches(rule, packageName) && triggersMatch(rule, ctx, mutableMapOf())
+    }
 
     fun evaluate(ctx: MatchContext, rules: List<Rule>): Decision {
         val decision = Decision()
@@ -216,5 +229,18 @@ class RuleEngine {
         } catch (_: Exception) {
             input
         }
+    }
+
+    private companion object {
+        /** Neutral device state for content-only preview matching. */
+        val PREVIEW_DEVICE = DeviceContext(
+            charging = false,
+            screenOn = false,
+            batteryPercent = 100,
+            minuteOfDay = 0,
+            isoDayOfWeek = 1,
+            dayType = DayType.WORKDAY,
+            nowMillis = 0L,
+        )
     }
 }

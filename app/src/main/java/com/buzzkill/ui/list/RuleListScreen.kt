@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -58,6 +59,7 @@ fun RuleListScreen(
     onOpenRule: (Long) -> Unit,
     onNewRule: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenHistory: () -> Unit,
     vm: RuleListViewModel = viewModel(),
 ) {
     val rules by vm.rules.collectAsStateWithLifecycle()
@@ -84,6 +86,9 @@ fun RuleListScreen(
     GlassScaffold(
         title = stringResource(R.string.rules_title),
         actions = {
+            IconButton(onClick = onOpenHistory) {
+                Icon(Icons.Default.History, contentDescription = stringResource(R.string.nav_history))
+            }
             IconButton(onClick = onNewRule) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_rule))
             }
