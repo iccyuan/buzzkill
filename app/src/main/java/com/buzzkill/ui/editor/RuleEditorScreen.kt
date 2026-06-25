@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -116,6 +120,8 @@ fun RuleEditorScreen(
                 IOSRow(
                     title = if (rule.appPackages.isEmpty()) stringResource(R.string.applies_all_apps)
                     else rule.appPackages.joinToString(", "),
+                    icon = Icons.Filled.Apps,
+                    iconColor = Color(0xFF007AFF),
                     onClick = { showAppPicker = true },
                 )
             }
@@ -135,7 +141,8 @@ fun RuleEditorScreen(
                 }
                 rule.triggers.forEach { trigger ->
                     HairlineDivider(startInset = 16.dp)
-                    IOSRow(title = Localize.summary(trigger), onClick = { editingTrigger = trigger })
+                    val (ic, col) = ComponentVisuals.of(trigger)
+                    IOSRow(title = Localize.summary(trigger), icon = ic, iconColor = col, onClick = { editingTrigger = trigger })
                 }
                 HairlineDivider(startInset = 16.dp)
                 AddRow(stringResource(R.string.add_trigger)) { addKind = AddKind.TRIGGER }
@@ -145,7 +152,8 @@ fun RuleEditorScreen(
             InsetGroupedSection(header = stringResource(R.string.section_conditions)) {
                 rule.conditions.forEachIndexed { i, condition ->
                     if (i > 0) HairlineDivider(startInset = 16.dp)
-                    IOSRow(title = Localize.summary(condition), onClick = { editingCondition = condition })
+                    val (ic, col) = ComponentVisuals.of(condition)
+                    IOSRow(title = Localize.summary(condition), icon = ic, iconColor = col, onClick = { editingCondition = condition })
                 }
                 if (rule.conditions.isNotEmpty()) HairlineDivider(startInset = 16.dp)
                 AddRow(stringResource(R.string.add_condition)) { addKind = AddKind.CONDITION }
@@ -158,7 +166,8 @@ fun RuleEditorScreen(
             ) {
                 rule.actions.forEachIndexed { i, action ->
                     if (i > 0) HairlineDivider(startInset = 16.dp)
-                    IOSRow(title = Localize.summary(action), onClick = { editingAction = action })
+                    val (ic, col) = ComponentVisuals.of(action)
+                    IOSRow(title = Localize.summary(action), icon = ic, iconColor = col, onClick = { editingAction = action })
                 }
                 if (rule.actions.isNotEmpty()) HairlineDivider(startInset = 16.dp)
                 AddRow(stringResource(R.string.add_action)) { addKind = AddKind.ACTION }
@@ -241,7 +250,7 @@ private fun EditorOverlays(
     }
 
     if (showAppPicker) {
-        AppPickerDialog(appPackages, onAppsConfirm, onAppsDismiss)
+        AppPickerScreen(appPackages, onAppsConfirm, onAppsDismiss)
     }
 }
 
@@ -249,9 +258,8 @@ private fun EditorOverlays(
 private fun AddRow(label: String, onClick: () -> Unit) {
     IOSRow(
         title = label,
+        icon = Icons.Filled.Add,
+        iconColor = Color(0xFF34C759),
         onClick = onClick,
-        trailing = {
-            Text("＋", color = MaterialTheme.colorScheme.primary)
-        },
     )
 }

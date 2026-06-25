@@ -2,6 +2,7 @@
 
 package com.buzzkill.ui.list
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,15 +16,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -85,10 +91,11 @@ fun RuleListScreen(
                 item {
                     InsetGroupedSection {
                         rules.forEachIndexed { index, rule ->
-                            RuleRow(
+                            SwipeableRuleRow(
                                 rule = rule,
                                 onClick = { onOpenRule(rule.id) },
                                 onToggle = { vm.setEnabled(rule, it) },
+                                onDelete = { vm.delete(rule) },
                             )
                             if (index < rules.lastIndex) HairlineDivider(startInset = 16.dp)
                         }
@@ -101,13 +108,47 @@ fun RuleListScreen(
 }
 
 @Composable
-private fun RuleRow(rule: Rule, onClick: () -> Unit, onToggle: (Boolean) -> Unit) {
-    IOSRow(
-        title = rule.name,
-        subtitle = summarize(rule),
-        onClick = onClick,
-        trailing = { IOSSwitch(checked = rule.enabled, onCheckedChange = onToggle) },
+private fun SwipeableRuleRow(
+    rule: Rule,
+    onClick: () -> Unit,
+    onToggle: (Boolean) -> Unit,
+    onDelete: () -> Unit,
+) {
+    val state = rememberSwipeToDismissBoxState(
+        confirmValueChange = {
+            if (it == SwipeToDismissBoxValue.EndToStart) {
+                onDelete(); true
+            } else {
+                false
+            }
+        },
     )
+    SwipeToDismissBox(
+        state = state,
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = true,
+        backgroundContent = {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFFF3B30))
+                    .padding(end = 24.dp),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = Color.White)
+            }
+        },
+    ) {
+        // Opaque surface so the red background only shows while swiping.
+        Box(Modifier.background(MaterialTheme.colorScheme.surface)) {
+            IOSRow(
+                title = rule.name,
+                subtitle = summarize(rule),
+                onClick = onClick,
+                trailing = { IOSSwitch(checked = rule.enabled, onCheckedChange = onToggle) },
+            )
+        }
+    }
 }
 
 @Composable

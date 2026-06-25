@@ -1,8 +1,11 @@
 package com.buzzkill.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,13 +13,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
@@ -28,11 +35,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.buzzkill.ui.theme.IOSColors
 import com.buzzkill.ui.theme.LocalIsDarkTheme
@@ -62,16 +74,12 @@ fun GlassScaffold(
     val navBars = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val bottomBarHeight = if (bottomBar != null) 64.dp else 0.dp
 
-    Box(modifier.fillMaxSize()) {
-        // 1. Gradient + coloured circles — the single blur source.
-        GlassBackdrop(haze)
-
-        // 2. Scrolling content (no haze source of its own); cards frost the backdrop.
-        Box(Modifier.fillMaxSize()) {
-            CompositionLocalProvider(
-                LocalHazeState provides haze,
-                LocalCardHazeState provides haze,
-            ) {
+    Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        // Scrolling content is the blur source; the frosted bars and dialogs blur it
+        // (classic iOS — content slides under a frosted bar). Plain background, no
+        // decorative wallpaper.
+        Box(Modifier.fillMaxSize().hazeSourceLayer(haze)) {
+            CompositionLocalProvider(LocalHazeState provides haze) {
                 content(
                     PaddingValues(
                         top = statusTop + NavBarHeight,
@@ -99,11 +107,8 @@ fun GlassScaffold(
             ) { bottomBar() }
         }
 
-        // 3. Overlays (dialogs/sheets) on top of everything, with the blur source in scope.
-        CompositionLocalProvider(
-            LocalHazeState provides haze,
-            LocalCardHazeState provides haze,
-        ) {
+        // Overlays (dialogs/sheets) on top of everything, with the blur source in scope.
+        CompositionLocalProvider(LocalHazeState provides haze) {
             overlay()
         }
     }
@@ -204,12 +209,28 @@ fun InsetGroupedSection(
     }
 }
 
-/** A single iOS list row: leading label, trailing content, optional tap + chevron. */
+/** An iOS-style rounded-square coloured icon badge with a white glyph. */
+@Composable
+fun IconBadge(icon: ImageVector, color: Color, modifier: Modifier = Modifier, size: Dp = 29.dp) {
+    Box(
+        modifier
+            .size(size)
+            .clip(RoundedCornerShape(size * 0.24f))
+            .background(color),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(size * 0.62f))
+    }
+}
+
+/** A single iOS list row: optional leading badge, label, trailing content. */
 @Composable
 fun IOSRow(
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    icon: ImageVector? = null,
+    iconColor: Color = MaterialTheme.colorScheme.primary,
     onClick: (() -> Unit)? = null,
     trailing: @Composable (() -> Unit)? = null,
 ) {
@@ -221,6 +242,10 @@ fun IOSRow(
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (icon != null) {
+            IconBadge(icon, iconColor)
+            Spacer(Modifier.width(12.dp))
+        }
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
             if (subtitle != null) {
@@ -294,7 +319,10 @@ fun IOSSwitch(checked: Boolean, onCheckedChange: ((Boolean) -> Unit)?) {
     )
 }
 
-/** iOS segmented control. */
+/**
+ * iOS segmented control with a sliding, shadowed selected pill and thin dividers that
+ * fade next to the active segment.
+ */
 @Composable
 fun <T> IOSSegmented(
     options: List<T>,
@@ -303,35 +331,76 @@ fun <T> IOSSegmented(
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val trackColor = if (LocalIsDarkTheme.current) Color(0xFF1C1C1E) else Color(0xFFE4E4E9)
-    Row(
+    val dark = LocalIsDarkTheme.current
+    val trackColor = if (dark) Color(0xFF2C2C2E) else Color(0xFF787880).copy(alpha = 0.12f)
+    val pillColor = if (dark) Color(0xFF636366) else Color.White
+    val count = options.size
+    val selIndex = options.indexOf(selected).coerceAtLeast(0)
+    val anim by animateFloatAsState(
+        targetValue = selIndex.toFloat(),
+        animationSpec = spring(dampingRatio = 0.85f, stiffness = 380f),
+        label = "segPill",
+    )
+
+    Box(
         modifier
+            .fillMaxWidth()
+            .height(34.dp)
             .clip(RoundedCornerShape(9.dp))
             .background(trackColor)
             .padding(2.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        options.forEach { option ->
-            val isSel = option == selected
-            val bg by animateColorAsState(
-                if (isSel) (if (LocalIsDarkTheme.current) Color(0xFF636366) else Color.White) else Color.Transparent,
-                label = "seg",
-            )
+        // Sliding selected pill.
+        if (count > 0) {
+            val bias = if (count > 1) -1f + 2f * anim / (count - 1) else 0f
             Box(
                 Modifier
-                    .weight(1f)
+                    .align(BiasAlignment(bias, 0f))
+                    .fillMaxHeight()
+                    .fillMaxWidth(1f / count)
+                    .shadow(3.dp, RoundedCornerShape(7.dp))
                     .clip(RoundedCornerShape(7.dp))
-                    .background(bg)
-                    .clickable { onSelect(option) }
-                    .padding(vertical = 6.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    label(option),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (isSel) FontWeight.SemiBold else FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+                    .background(pillColor),
+            )
+        }
+        // Divider lines between segments (hidden right next to the selected pill).
+        Row(Modifier.fillMaxSize()) {
+            options.forEachIndexed { i, _ ->
+                if (i > 0) {
+                    val near = i == selIndex || i - 1 == selIndex
+                    Box(
+                        Modifier
+                            .fillMaxHeight()
+                            .padding(vertical = 7.dp)
+                            .width(1.dp)
+                            .background(
+                                if (near) Color.Transparent
+                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.22f)
+                            ),
+                    )
+                }
+                Box(Modifier.weight(1f))
+            }
+        }
+        // Labels (above the pill).
+        Row(Modifier.fillMaxSize()) {
+            options.forEach { option ->
+                val noRipple = remember { MutableInteractionSource() }
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(7.dp))
+                        .clickable(interactionSource = noRipple, indication = null) { onSelect(option) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        label(option),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (option == selected) FontWeight.SemiBold else FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
         }
     }

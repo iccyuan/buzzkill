@@ -3,12 +3,16 @@ package com.buzzkill.ui.settings
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.buzzkill.data.HolidayProvider
 import com.buzzkill.data.RuleRepository
 import com.buzzkill.data.SettingsStore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -35,5 +39,17 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun importRules(json: String, onResult: (Int) -> Unit) = viewModelScope.launch {
         val count = runCatching { repository.importJson(json) }.getOrDefault(-1)
         onResult(count)
+    }
+
+    /** Last holiday-data update time (epoch ms), 0 if never. */
+    val holidayUpdated = MutableStateFlow(HolidayProvider.lastUpdated(getApplication()))
+    val holidayUpdating = MutableStateFlow(false)
+
+    fun updateHolidays(onResult: (Boolean) -> Unit) = viewModelScope.launch {
+        holidayUpdating.value = true
+        val result = withContext(Dispatchers.IO) { HolidayProvider.refresh(getApplication()) }
+        holidayUpdating.value = false
+        holidayUpdated.value = HolidayProvider.lastUpdated(getApplication())
+        onResult(result.ok)
     }
 }

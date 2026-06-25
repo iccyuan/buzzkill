@@ -35,6 +35,7 @@
     <string name="section_options">选项</string>
     <string name="applies_all_apps">应用于所有应用</string>
     <string name="select_apps">选择应用</string>
+    <string name="show_system_apps">显示系统应用</string>
     <string name="add_trigger">添加触发器</string>
     <string name="add_condition">添加条件</string>
     <string name="add_action">添加动作</string>
@@ -118,6 +119,12 @@
     <string name="theme_light">浅色</string>
     <string name="theme_dark">深色</string>
     <string name="settings_language">语言</string>
+    <string name="settings_holidays">节假日（中国）</string>
+    <string name="holiday_update">从网络更新</string>
+    <string name="holiday_last_updated">上次更新：%s</string>
+    <string name="holiday_never">尚未更新（使用内置数据）</string>
+    <string name="holiday_update_done">节假日数据已更新</string>
+    <string name="holiday_update_failed">更新失败（网络不可用？）</string>
     <string name="lang_system">跟随系统</string>
     <string name="lang_en">English</string>
     <string name="lang_zh">中文</string>

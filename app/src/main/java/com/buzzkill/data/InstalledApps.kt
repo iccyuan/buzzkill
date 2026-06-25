@@ -14,10 +14,11 @@ data class AppInfo(
 object InstalledApps {
 
     /**
-     * Returns launchable + notifying apps sorted by label. Excludes ourselves.
+     * Returns installed apps sorted by label, excluding ourselves. When
+     * [includeSystem] is false (default) system apps without a launcher are hidden.
      * Loaded off the main thread by callers.
      */
-    fun load(context: Context): List<AppInfo> {
+    fun load(context: Context, includeSystem: Boolean = false): List<AppInfo> {
         val pm = context.packageManager
         val installed = pm.getInstalledApplications(0)
         return installed
@@ -25,7 +26,8 @@ object InstalledApps {
             .filter { it.packageName != context.packageName }
             // Keep apps the user can see: launchable, or non-system, or updated-system.
             .filter { info ->
-                pm.getLaunchIntentForPackage(info.packageName) != null ||
+                includeSystem ||
+                    pm.getLaunchIntentForPackage(info.packageName) != null ||
                     (info.flags and ApplicationInfo.FLAG_SYSTEM) == 0 ||
                     (info.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
             }

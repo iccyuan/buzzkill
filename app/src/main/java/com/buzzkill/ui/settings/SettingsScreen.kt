@@ -16,6 +16,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -27,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -72,11 +77,15 @@ fun SettingsScreen(
             InsetGroupedSection(header = stringResource(R.string.settings_general)) {
                 IOSRow(
                     title = stringResource(R.string.settings_master),
+                    icon = Icons.Filled.Bolt,
+                    iconColor = Color(0xFF34C759),
                     trailing = { IOSSwitch(masterEnabled) { vm.setMasterEnabled(it) } },
                 )
                 HairlineDivider(startInset = 16.dp)
                 IOSRow(
                     title = stringResource(R.string.settings_log),
+                    icon = Icons.AutoMirrored.Filled.ListAlt,
+                    iconColor = Color(0xFF007AFF),
                     trailing = { IOSSwitch(logActivity) { vm.setLogActivity(it) } },
                 )
             }
@@ -112,6 +121,36 @@ fun SettingsScreen(
                             if (lang != currentLang) {
                                 LanguageStore.set(context, lang)
                                 context.findActivity()?.recreate()
+                            }
+                        },
+                    )
+                }
+            }
+
+            // Holidays (China) — official-derived data, fetched & cached locally.
+            val holUpdated by vm.holidayUpdated.collectAsStateWithLifecycle()
+            val holUpdating by vm.holidayUpdating.collectAsStateWithLifecycle()
+            InsetGroupedSection(header = stringResource(R.string.settings_holidays)) {
+                IOSRow(
+                    title = stringResource(R.string.settings_holidays),
+                    subtitle = if (holUpdated > 0)
+                        stringResource(R.string.holiday_last_updated, formatTime(holUpdated))
+                    else stringResource(R.string.holiday_never),
+                    icon = Icons.Filled.CalendarMonth,
+                    iconColor = Color(0xFFFF3B30),
+                )
+                HairlineDivider(startInset = 16.dp)
+                Column(Modifier.padding(16.dp)) {
+                    IOSTintedButton(
+                        text = if (holUpdating) "…" else stringResource(R.string.holiday_update),
+                        onClick = {
+                            if (!holUpdating) vm.updateHolidays { ok ->
+                                toast(
+                                    context,
+                                    context.getString(
+                                        if (ok) R.string.holiday_update_done else R.string.holiday_update_failed
+                                    ),
+                                )
                             }
                         },
                     )
@@ -209,6 +248,9 @@ private fun themeLabel(code: String): String = when (code) {
     ThemeStore.DARK -> stringResource(R.string.theme_dark)
     else -> stringResource(R.string.theme_system)
 }
+
+private fun formatTime(epochMs: Long): String =
+    java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault()).format(java.util.Date(epochMs))
 
 private fun copyToClipboard(context: Context, text: String) {
     val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
