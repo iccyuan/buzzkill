@@ -4,6 +4,7 @@ package com.buzzkill.ui.editor
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -104,9 +105,7 @@ fun AppPickerScreen(
 
             val list = apps
             if (list == null) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+                LoadingSkeleton()
             } else {
                 val filtered = remember(query, list) {
                     if (query.isBlank()) list
@@ -145,55 +144,83 @@ private fun AppGridItem(app: AppInfo, selected: Boolean, onToggle: () -> Unit) {
         runCatching { app.icon?.toBitmap(96, 96)?.asImageBitmap() }.getOrNull()
     }
     val primary = MaterialTheme.colorScheme.primary
-    Column(
+    val borderColor by androidx.compose.animation.animateColorAsState(
+        if (selected) primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), label = "border"
+    )
+    val bg by androidx.compose.animation.animateColorAsState(
+        if (selected) primary.copy(alpha = 0.14f) else MaterialTheme.colorScheme.surface, label = "bg"
+    )
+    Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                if (selected) primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surface
-            )
+            .clip(RoundedCornerShape(18.dp))
+            .background(bg)
             .border(
-                width = if (selected) 1.5.dp else 0.5.dp,
-                color = if (selected) primary else MaterialTheme.colorScheme.outline,
-                shape = RoundedCornerShape(16.dp),
+                width = if (selected) 2.dp else 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(18.dp),
             )
             .clickable(onClick = onToggle)
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+            .padding(10.dp),
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Column(
+            Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             if (bitmap != null) {
-                Image(bitmap = bitmap, contentDescription = app.label, modifier = Modifier.size(44.dp))
+                Image(bitmap = bitmap, contentDescription = app.label, modifier = Modifier.size(46.dp))
             } else {
-                Icon(Icons.Filled.Android, contentDescription = null, modifier = Modifier.size(44.dp))
+                Icon(Icons.Filled.Android, contentDescription = null, modifier = Modifier.size(46.dp))
             }
-            if (selected) {
-                Box(
-                    Modifier
-                        .align(Alignment.TopEnd)
-                        .size(18.dp)
-                        .clip(CircleShape)
-                        .background(primary),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        Icons.Filled.Check,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(12.dp),
-                    )
-                }
-            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                app.label,
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.SemiBold
+                else androidx.compose.ui.text.font.FontWeight.Normal,
+                color = if (selected) primary else MaterialTheme.colorScheme.onSurface,
+            )
         }
-        Spacer(Modifier.height(6.dp))
-        Text(
-            app.label,
-            style = MaterialTheme.typography.labelSmall,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        // Selection mark: a plain check in the corner (no circle).
+        if (selected) {
+            Icon(
+                Icons.Filled.Check,
+                contentDescription = null,
+                tint = primary,
+                modifier = Modifier.align(Alignment.TopEnd).size(18.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun LoadingSkeleton() {
+    val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "skeleton")
+    val alpha by transition.animateFloat(
+        initialValue = 0.25f,
+        targetValue = 0.6f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            androidx.compose.animation.core.tween(800),
+            androidx.compose.animation.core.RepeatMode.Reverse,
+        ),
+        label = "pulse",
+    )
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(96.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        items(12) {
+            Box(
+                Modifier
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha * 0.35f)),
+            )
+        }
     }
 }

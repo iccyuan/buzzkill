@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.buzzkill.data.LanguageStore
 import com.buzzkill.data.ThemeStore
 import com.buzzkill.ui.nav.BuzzKillNavHost
 import com.buzzkill.ui.theme.BuzzKillTheme
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         enableEdgeToEdge()
         ThemeStore.ensureLoaded(this)
+        LanguageStore.ensureLoaded(this)
         super.onCreate(savedInstanceState)
         setContent {
             val mode by ThemeStore.mode.collectAsStateWithLifecycle()
@@ -43,21 +45,14 @@ class MainActivity : ComponentActivity() {
                 ThemeStore.DARK -> true
                 else -> isSystemInDarkTheme()
             }
-            BuzzKillTheme(darkTheme = dark) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    var showSplash by remember { mutableStateOf(true) }
-                    LaunchedEffect(Unit) {
-                        delay(1100)
-                        showSplash = false
-                    }
-                    Box(Modifier.fillMaxSize()) {
+            val language by LanguageStore.language.collectAsStateWithLifecycle()
+            ProvideAppLocale(language) {
+                BuzzKillTheme(darkTheme = dark) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background,
+                    ) {
                         BuzzKillNavHost()
-                        AnimatedVisibility(visible = showSplash, exit = fadeOut(tween(420))) {
-                            SplashIntro()
-                        }
                     }
                 }
             }

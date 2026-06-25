@@ -5,6 +5,8 @@
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
+    <string name="delete_rule_title">Delete rule?</string>
+    <string name="delete_rule_msg">This rule will be permanently removed.</string>
     <string name="done">Done</string>
     <string name="add">Add</string>
     <string name="search">Search</string>

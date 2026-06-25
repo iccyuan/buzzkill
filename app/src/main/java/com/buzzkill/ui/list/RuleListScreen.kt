@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,8 +26,12 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,6 +63,23 @@ fun RuleListScreen(
     val rules by vm.rules.collectAsStateWithLifecycle()
     val accessGranted = rememberNotificationAccessGranted()
     val context = LocalContext.current
+    var pendingDelete by remember { mutableStateOf<Rule?>(null) }
+
+    pendingDelete?.let { rule ->
+        AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text(stringResource(R.string.delete_rule_title)) },
+            text = { Text(stringResource(R.string.delete_rule_msg)) },
+            confirmButton = {
+                TextButton(onClick = { vm.delete(rule); pendingDelete = null }) {
+                    Text(stringResource(R.string.delete), color = Color(0xFFFF3B30))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.cancel)) }
+            },
+        )
+    }
 
     GlassScaffold(
         title = stringResource(R.string.rules_title),
@@ -95,7 +117,7 @@ fun RuleListScreen(
                                 rule = rule,
                                 onClick = { onOpenRule(rule.id) },
                                 onToggle = { vm.setEnabled(rule, it) },
-                                onDelete = { vm.delete(rule) },
+                                onRequestDelete = { pendingDelete = rule },
                             )
                             if (index < rules.lastIndex) HairlineDivider(startInset = 16.dp)
                         }
@@ -112,15 +134,14 @@ private fun SwipeableRuleRow(
     rule: Rule,
     onClick: () -> Unit,
     onToggle: (Boolean) -> Unit,
-    onDelete: () -> Unit,
+    onRequestDelete: () -> Unit,
 ) {
+    // Always returns false so the row snaps back; the actual delete happens only after
+    // the confirmation dialog.
     val state = rememberSwipeToDismissBoxState(
         confirmValueChange = {
-            if (it == SwipeToDismissBoxValue.EndToStart) {
-                onDelete(); true
-            } else {
-                false
-            }
+            if (it == SwipeToDismissBoxValue.EndToStart) onRequestDelete()
+            false
         },
     )
     SwipeToDismissBox(

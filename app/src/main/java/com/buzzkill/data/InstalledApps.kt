@@ -42,4 +42,15 @@ object InstalledApps {
             .sortedBy { it.label.lowercase() }
             .toList()
     }
+
+    /** Resolves the label + icon for specific packages (uninstalled ones are dropped). */
+    fun infoFor(context: Context, packages: List<String>): List<AppInfo> {
+        val pm = context.packageManager
+        return packages.mapNotNull { pkg ->
+            runCatching {
+                val ai = pm.getApplicationInfo(pkg, 0)
+                AppInfo(pkg, pm.getApplicationLabel(ai).toString(), pm.getApplicationIcon(ai))
+            }.getOrNull()
+        }
+    }
 }

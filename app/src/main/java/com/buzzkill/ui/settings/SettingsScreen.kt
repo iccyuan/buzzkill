@@ -61,7 +61,7 @@ fun SettingsScreen(
     val logActivity by vm.logActivity.collectAsStateWithLifecycle()
     val accessGranted = rememberNotificationAccessGranted()
     var showImport by remember { mutableStateOf(false) }
-    val currentLang = remember { LanguageStore.get(context) }
+    val currentLang by LanguageStore.language.collectAsStateWithLifecycle()
 
     GlassScaffold(title = stringResource(R.string.settings), onBack = onBack) { padding ->
         Column(
@@ -117,12 +117,7 @@ fun SettingsScreen(
                         options = LanguageStore.options,
                         selected = currentLang,
                         label = { langLabel(it) },
-                        onSelect = { lang ->
-                            if (lang != currentLang) {
-                                LanguageStore.set(context, lang)
-                                context.findActivity()?.recreate()
-                            }
-                        },
+                        onSelect = { lang -> LanguageStore.set(context, lang) },
                     )
                 }
             }

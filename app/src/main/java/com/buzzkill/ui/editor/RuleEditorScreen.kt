@@ -5,6 +5,8 @@
 
 package com.buzzkill.ui.editor
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -13,11 +15,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.graphics.drawable.toBitmap
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -66,6 +75,23 @@ fun RuleEditorScreen(
     var editingAction by remember { mutableStateOf<Action?>(null) }
     var addKind by remember { mutableStateOf<AddKind?>(null) }
     var showAppPicker by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
+    if (showDeleteConfirm) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(stringResource(R.string.delete_rule_title)) },
+            text = { Text(stringResource(R.string.delete_rule_msg)) },
+            confirmButton = {
+                TextButton(onClick = { showDeleteConfirm = false; vm.delete(onDone) }) {
+                    Text(stringResource(R.string.delete), color = Color(0xFFFF3B30))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(R.string.cancel)) }
+            },
+        )
+    }
 
     GlassScaffold(
         title = stringResource(if (ruleId == 0L) R.string.new_rule else R.string.edit_rule),
@@ -117,13 +143,19 @@ fun RuleEditorScreen(
 
             // Apps
             InsetGroupedSection(header = stringResource(R.string.section_apps)) {
-                IOSRow(
-                    title = if (rule.appPackages.isEmpty()) stringResource(R.string.applies_all_apps)
-                    else rule.appPackages.joinToString(", "),
-                    icon = Icons.Filled.Apps,
-                    iconColor = Color(0xFF007AFF),
-                    onClick = { showAppPicker = true },
-                )
+                if (rule.appPackages.isEmpty()) {
+                    IOSRow(
+                        title = stringResource(R.string.applies_all_apps),
+                        icon = Icons.Filled.Apps,
+                        iconColor = Color(0xFF007AFF),
+                        onClick = { showAppPicker = true },
+                    )
+                } else {
+                    SelectedAppsChips(
+                        packages = rule.appPackages,
+                        onClick = { showAppPicker = true },
+                    )
+                }
             }
 
             // Triggers
@@ -145,7 +177,9 @@ fun RuleEditorScreen(
                     IOSRow(title = Localize.summary(trigger), icon = ic, iconColor = col, onClick = { editingTrigger = trigger })
                 }
                 HairlineDivider(startInset = 16.dp)
-                AddRow(stringResource(R.string.add_trigger)) { addKind = AddKind.TRIGGER }
+                AddRow(stringResource(R.string.add_trigger), Icons.Filled.FilterAlt, Color(0xFF007AFF)) {
+                    addKind = AddKind.TRIGGER
+                }
             }
 
             // Conditions
@@ -156,7 +190,9 @@ fun RuleEditorScreen(
                     IOSRow(title = Localize.summary(condition), icon = ic, iconColor = col, onClick = { editingCondition = condition })
                 }
                 if (rule.conditions.isNotEmpty()) HairlineDivider(startInset = 16.dp)
-                AddRow(stringResource(R.string.add_condition)) { addKind = AddKind.CONDITION }
+                AddRow(stringResource(R.string.add_condition), Icons.Filled.Tune, Color(0xFFFF9500)) {
+                    addKind = AddKind.CONDITION
+                }
             }
 
             // Actions
@@ -170,7 +206,9 @@ fun RuleEditorScreen(
                     IOSRow(title = Localize.summary(action), icon = ic, iconColor = col, onClick = { editingAction = action })
                 }
                 if (rule.actions.isNotEmpty()) HairlineDivider(startInset = 16.dp)
-                AddRow(stringResource(R.string.add_action)) { addKind = AddKind.ACTION }
+                AddRow(stringResource(R.string.add_action), Icons.Filled.Bolt, Color(0xFF34C759)) {
+                    addKind = AddKind.ACTION
+                }
             }
 
             // Options
@@ -197,7 +235,7 @@ fun RuleEditorScreen(
                     IOSFilledButton(
                         text = stringResource(R.string.delete),
                         destructive = true,
-                        onClick = { vm.delete(onDone) },
+                        onClick = { showDeleteConfirm = true },
                     )
                 }
             }
@@ -255,11 +293,56 @@ private fun EditorOverlays(
 }
 
 @Composable
-private fun AddRow(label: String, onClick: () -> Unit) {
-    IOSRow(
-        title = label,
-        icon = Icons.Filled.Add,
-        iconColor = Color(0xFF34C759),
-        onClick = onClick,
-    )
+private fun AddRow(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+    onClick: () -> Unit,
+) {
+    IOSRow(title = label, icon = icon, iconColor = color, onClick = onClick)
+}
+
+/** Selected apps shown as logo + name chips; tapping anywhere opens the picker. */
+@Composable
+private fun SelectedAppsChips(packages: List<String>, onClick: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val infos by androidx.compose.runtime.produceState(
+        initialValue = emptyList<com.buzzkill.data.AppInfo>(), packages,
+    ) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            com.buzzkill.data.InstalledApps.infoFor(context, packages)
+        }
+    }
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        infos.forEach { AppChip(it) }
+    }
+}
+
+@Composable
+private fun AppChip(app: com.buzzkill.data.AppInfo) {
+    val bmp = remember(app.packageName) {
+        runCatching { app.icon?.toBitmap(48, 48)?.asImageBitmap() }.getOrNull()
+    }
+    androidx.compose.foundation.layout.Row(
+        modifier = Modifier
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = 8.dp, vertical = 5.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+    ) {
+        if (bmp != null) {
+            androidx.compose.foundation.Image(bmp, null, Modifier.size(20.dp))
+        } else {
+            androidx.compose.material3.Icon(Icons.Filled.Apps, null, Modifier.size(20.dp))
+        }
+        Spacer(Modifier.width(6.dp))
+        Text(app.label, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+    }
 }

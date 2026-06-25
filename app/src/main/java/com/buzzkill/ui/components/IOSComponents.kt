@@ -74,12 +74,16 @@ fun GlassScaffold(
     val navBars = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val bottomBarHeight = if (bottomBar != null) 64.dp else 0.dp
 
-    Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        // Scrolling content is the blur source; the frosted bars and dialogs blur it
-        // (classic iOS — content slides under a frosted bar). Plain background, no
-        // decorative wallpaper.
-        Box(Modifier.fillMaxSize().hazeSourceLayer(haze)) {
-            CompositionLocalProvider(LocalHazeState provides haze) {
+    Box(modifier.fillMaxSize()) {
+        // Faint coloured backdrop is the single blur source; cards, bars and dialogs
+        // all frost it.
+        GlassBackdrop(haze)
+
+        Box(Modifier.fillMaxSize()) {
+            CompositionLocalProvider(
+                LocalHazeState provides haze,
+                LocalCardHazeState provides haze,
+            ) {
                 content(
                     PaddingValues(
                         top = statusTop + NavBarHeight,
@@ -108,7 +112,10 @@ fun GlassScaffold(
         }
 
         // Overlays (dialogs/sheets) on top of everything, with the blur source in scope.
-        CompositionLocalProvider(LocalHazeState provides haze) {
+        CompositionLocalProvider(
+            LocalHazeState provides haze,
+            LocalCardHazeState provides haze,
+        ) {
             overlay()
         }
     }
