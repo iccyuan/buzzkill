@@ -176,7 +176,7 @@ private fun TodayOverrideCard() {
             com.buzzkill.data.HolidayProvider.todayOverride(context)
         }
     }
-    InsetGroupedSection(header = stringResource(R.string.today_header)) {
+    InsetGroupedSection {
         Row(
             Modifier.fillMaxWidth().padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
