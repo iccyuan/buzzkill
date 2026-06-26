@@ -23,6 +23,8 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
     val logActivity: StateFlow<Boolean> = settings.logActivity
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    val hideFromRecents: StateFlow<Boolean> = settings.hideFromRecents
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     fun setMasterEnabled(value: Boolean) = viewModelScope.launch {
         settings.setMasterEnabled(value)
@@ -30,6 +32,10 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setLogActivity(value: Boolean) = viewModelScope.launch {
         settings.setLogActivity(value)
+    }
+
+    fun setHideFromRecents(value: Boolean) = viewModelScope.launch {
+        settings.setHideFromRecents(value)
     }
 
     fun exportRules(onResult: (String) -> Unit) = viewModelScope.launch {

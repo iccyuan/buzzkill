@@ -138,6 +138,8 @@
     <string name="settings_general">通用</string>
     <string name="settings_master">启用 BuzzKill</string>
     <string name="settings_log">记录活动</string>
+    <string name="settings_hide_recents">隐藏后台</string>
+    <string name="settings_hide_recents_desc">不在「最近任务」列表中显示本应用</string>
     <string name="settings_access">通知使用权</string>
     <string name="access_granted">已授予 — BuzzKill 可读取和修改通知。</string>
     <string name="access_not_granted">未授予。没有它 BuzzKill 无法工作。</string>

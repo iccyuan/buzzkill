@@ -21,11 +21,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.buzzkill.data.LanguageStore
 import com.buzzkill.data.ThemeStore
 import com.buzzkill.ui.nav.BuzzKillNavHost
 import com.buzzkill.ui.theme.BuzzKillTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: Context) {
@@ -38,6 +40,16 @@ class MainActivity : ComponentActivity() {
         ThemeStore.ensureLoaded(this)
         LanguageStore.ensureLoaded(this)
         super.onCreate(savedInstanceState)
+
+        // 跟随「隐藏后台」开关：开启时把本任务从「最近任务」列表中排除（默认开启）。
+        lifecycleScope.launch {
+            com.buzzkill.data.SettingsStore.get(this@MainActivity).hideFromRecents.collect { hide ->
+                runCatching {
+                    getSystemService(android.app.ActivityManager::class.java)
+                        ?.appTasks?.forEach { it.setExcludeFromRecents(hide) }
+                }
+            }
+        }
         setContent {
             val mode by ThemeStore.mode.collectAsStateWithLifecycle()
             val dark = when (mode) {

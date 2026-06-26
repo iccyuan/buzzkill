@@ -138,6 +138,8 @@
     <string name="settings_general">General</string>
     <string name="settings_master">BuzzKill enabled</string>
     <string name="settings_log">Log activity</string>
+    <string name="settings_hide_recents">Hide from recents</string>
+    <string name="settings_hide_recents_desc">Keep the app out of the recent-apps list</string>
     <string name="settings_access">Notification access</string>
     <string name="access_granted">Granted — BuzzKill can read and modify notifications.</string>
     <string name="access_not_granted">Not granted. BuzzKill cannot work without it.</string>

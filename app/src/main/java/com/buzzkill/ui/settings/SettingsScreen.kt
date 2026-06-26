@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -60,6 +61,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val masterEnabled by vm.masterEnabled.collectAsStateWithLifecycle()
     val logActivity by vm.logActivity.collectAsStateWithLifecycle()
+    val hideFromRecents by vm.hideFromRecents.collectAsStateWithLifecycle()
     val accessGranted = rememberNotificationAccessGranted()
     var showImport by remember { mutableStateOf(false) }
     val currentLang by LanguageStore.language.collectAsStateWithLifecycle()
@@ -88,6 +90,14 @@ fun SettingsScreen(
                     icon = Icons.AutoMirrored.Filled.ListAlt,
                     iconColor = IOSColors.Blue,
                     trailing = { IOSSwitch(logActivity) { vm.setLogActivity(it) } },
+                )
+                HairlineDivider(startInset = 16.dp)
+                IOSRow(
+                    title = stringResource(R.string.settings_hide_recents),
+                    subtitle = stringResource(R.string.settings_hide_recents_desc),
+                    icon = Icons.Filled.VisibilityOff,
+                    iconColor = IOSColors.Indigo,
+                    trailing = { IOSSwitch(hideFromRecents) { vm.setHideFromRecents(it) } },
                 )
             }
 
