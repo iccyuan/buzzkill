@@ -19,8 +19,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Weekend
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -183,7 +183,7 @@ private fun TodayOverrideCard() {
         ) {
             TodayButton(
                 label = stringResource(R.string.today_rest),
-                icon = Icons.Filled.BeachAccess,
+                icon = Icons.Filled.Weekend,
                 color = Color(0xFFFF3B30),
                 active = override == com.buzzkill.data.HolidayProvider.OVERRIDE_REST,
                 modifier = Modifier.weight(1f),
