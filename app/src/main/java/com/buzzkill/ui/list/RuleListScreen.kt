@@ -3,25 +3,27 @@
 package com.buzzkill.ui.list
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -35,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -48,6 +51,7 @@ import com.buzzkill.data.model.Rule
 import com.buzzkill.service.NotificationAccess
 import com.buzzkill.ui.Localize
 import com.buzzkill.ui.common.rememberNotificationAccessGranted
+import com.buzzkill.ui.components.GlassDialog
 import com.buzzkill.ui.components.GlassScaffold
 import com.buzzkill.ui.components.HairlineDivider
 import com.buzzkill.ui.components.IOSRow
@@ -68,33 +72,21 @@ fun RuleListScreen(
     val context = LocalContext.current
     var pendingDelete by remember { mutableStateOf<Rule?>(null) }
 
-    pendingDelete?.let { rule ->
-        AlertDialog(
-            onDismissRequest = { pendingDelete = null },
-            title = { Text(stringResource(R.string.delete_rule_title)) },
-            text = { Text(stringResource(R.string.delete_rule_msg)) },
-            confirmButton = {
-                TextButton(onClick = { vm.delete(rule); pendingDelete = null }) {
-                    Text(stringResource(R.string.delete), color = Color(0xFFFF3B30))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.cancel)) }
-            },
-        )
-    }
-
     GlassScaffold(
         title = stringResource(R.string.rules_title),
         actions = {
-            IconButton(onClick = onOpenHistory) {
-                Icon(Icons.Default.History, contentDescription = stringResource(R.string.nav_history))
-            }
-            IconButton(onClick = onNewRule) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_rule))
-            }
-            IconButton(onClick = onOpenSettings) {
-                Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+            NavCircleButton(Icons.Default.History, stringResource(R.string.nav_history), onClick = onOpenHistory)
+            Spacer(Modifier.width(8.dp))
+            NavCircleButton(Icons.Default.Add, stringResource(R.string.new_rule), prominent = true, onClick = onNewRule)
+            Spacer(Modifier.width(8.dp))
+            NavCircleButton(Icons.Default.Settings, stringResource(R.string.settings), onClick = onOpenSettings)
+        },
+        overlay = {
+            pendingDelete?.let { rule ->
+                DeleteRuleDialog(
+                    onConfirm = { vm.delete(rule); pendingDelete = null },
+                    onDismiss = { pendingDelete = null },
+                )
             }
         },
     ) { padding ->
@@ -175,6 +167,59 @@ private fun SwipeableRuleRow(
                 onClick = onClick,
                 trailing = { IOSSwitch(checked = rule.enabled, onCheckedChange = onToggle) },
             )
+        }
+    }
+}
+
+/** iOS-style circular nav-bar button: a faint tinted disc with a tinted glyph. The
+ *  primary action (new rule) is a filled accent disc with a white glyph. */
+@Composable
+private fun NavCircleButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    prominent: Boolean = false,
+    onClick: () -> Unit,
+) {
+    val primary = MaterialTheme.colorScheme.primary
+    val bg = if (prominent) primary else primary.copy(alpha = 0.12f)
+    val tint = if (prominent) Color.White else primary
+    Box(
+        Modifier
+            .size(34.dp)
+            .clip(CircleShape)
+            .background(bg)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = contentDescription, tint = tint, modifier = Modifier.size(20.dp))
+    }
+}
+
+/** iOS-style frosted confirmation for deleting a rule (replaces the Material AlertDialog). */
+@Composable
+private fun DeleteRuleDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    GlassDialog(onDismiss = onDismiss) {
+        Text(
+            stringResource(R.string.delete_rule_title),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            stringResource(R.string.delete_rule_msg),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(
+            Modifier.fillMaxWidth().padding(top = 16.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            Spacer(Modifier.width(8.dp))
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.delete), color = Color(0xFFFF3B30), fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }

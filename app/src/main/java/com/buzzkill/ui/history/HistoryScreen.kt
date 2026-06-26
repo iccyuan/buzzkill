@@ -4,19 +4,24 @@ package com.buzzkill.ui.history
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -41,6 +46,8 @@ import com.buzzkill.data.model.NotificationLog
 import com.buzzkill.ui.components.GlassScaffold
 import com.buzzkill.ui.components.HairlineDivider
 import com.buzzkill.ui.components.InsetGroupedSection
+import com.buzzkill.ui.components.cardFrost
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
 private enum class Grouping { DAY, WEEK }
@@ -54,8 +61,12 @@ fun HistoryScreen(onBack: () -> Unit, vm: HistoryViewModel = viewModel()) {
     val filtered = remember(logs, selectedApp) {
         if (selectedApp == null) logs else logs.filter { it.packageName == selectedApp }
     }
+    // Apps that appear in the log, most frequent first (so the common ones lead the
+    // horizontally-scrollable filter row even when there are many apps).
     val appList = remember(logs) {
-        logs.distinctBy { it.packageName }.map { it.packageName to it.appName }
+        logs.groupingBy { it.packageName }.eachCount()
+            .entries.sortedByDescending { it.value }
+            .map { entry -> entry.key to (logs.first { it.packageName == entry.key }.appName) }
     }
 
     GlassScaffold(
@@ -104,7 +115,7 @@ fun HistoryScreen(onBack: () -> Unit, vm: HistoryViewModel = viewModel()) {
                     InsetGroupedSection {
                         items.forEachIndexed { i, log ->
                             if (i > 0) HairlineDivider(startInset = 16.dp)
-                            LogRow(log)
+                            SwipeableLogRow(log = log, onDelete = { vm.delete(log) })
                         }
                     }
                 }
@@ -181,13 +192,14 @@ private fun AppFilterChips(
     selected: String?,
     onSelect: (String?) -> Unit,
 ) {
-    FlowRow(
-        Modifier.padding(horizontal = 16.dp),
+    // A single horizontally-scrollable row keeps the filter compact no matter how many
+    // apps have produced notifications.
+    androidx.compose.foundation.lazy.LazyRow(
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Chip(stringResource(R.string.filter_all_apps), selected == null) { onSelect(null) }
-        apps.forEach { (pkg, name) ->
+        item { Chip(stringResource(R.string.filter_all_apps), selected == null) { onSelect(null) } }
+        items(apps, key = { it.first }) { (pkg, name) ->
             Chip(name, selected == pkg) { onSelect(pkg) }
         }
     }
@@ -213,40 +225,135 @@ private fun Chip(label: String, active: Boolean, onClick: () -> Unit) {
     }
 }
 
+/** A log row that slides left to reveal a tappable delete button. */
 @Composable
-private fun LogRow(log: NotificationLog) {
-    Row(
-        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    log.appName,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+private fun SwipeableLogRow(log: NotificationLog, onDelete: () -> Unit) {
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val revealPx = with(density) { 80.dp.toPx() }
+    val offsetX = remember { androidx.compose.animation.core.Animatable(0f) }
+
+    Box(Modifier.fillMaxWidth()) {
+        // Delete button revealed behind the row on the trailing edge.
+        Box(
+            Modifier.matchParentSize().background(Color(0xFFFF3B30)),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            Column(
+                Modifier
+                    .width(80.dp)
+                    .fillMaxHeight()
+                    .clickable {
+                        scope.launch { offsetX.animateTo(0f) }
+                        onDelete()
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                androidx.compose.material3.Icon(
+                    androidx.compose.material.icons.Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.delete),
+                    tint = Color.White,
                 )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    timeOf(log.time),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            val sub = listOf(log.title, log.text).filter { it.isNotBlank() }.joinToString(" · ")
-            if (sub.isNotBlank()) {
-                Text(
-                    sub,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Text(stringResource(R.string.delete), style = MaterialTheme.typography.labelSmall, color = Color.White)
             }
         }
-        OutcomeBadge(log)
+        // Foreground (frosted so it hides the red button when closed), slides on drag.
+        Box(
+            Modifier
+                .offset { androidx.compose.ui.unit.IntOffset(offsetX.value.toInt(), 0) }
+                .fillMaxWidth()
+                .cardFrost()
+                .draggable(
+                    orientation = androidx.compose.foundation.gestures.Orientation.Horizontal,
+                    state = androidx.compose.foundation.gestures.rememberDraggableState { delta ->
+                        scope.launch { offsetX.snapTo((offsetX.value + delta).coerceIn(-revealPx, 0f)) }
+                    },
+                    onDragStopped = {
+                        scope.launch {
+                            offsetX.animateTo(if (offsetX.value < -revealPx / 2) -revealPx else 0f)
+                        }
+                    },
+                ),
+        ) {
+            LogRow(log)
+        }
+    }
+}
+
+@Composable
+private fun LogRow(log: NotificationLog) {
+    // Keyed by id so the expanded row follows its log when the list changes (e.g. after a delete).
+    var expanded by remember(log.id) { mutableStateOf(false) }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clickable { expanded = !expanded }
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        log.appName,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        timeOf(log.time),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (!expanded) {
+                    val sub = listOf(log.title, log.text).filter { it.isNotBlank() }.joinToString(" · ")
+                    if (sub.isNotBlank()) {
+                        Text(
+                            sub,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+            OutcomeBadge(log)
+        }
+        androidx.compose.animation.AnimatedVisibility(visible = expanded) {
+            Column(Modifier.padding(top = 8.dp)) {
+                if (log.title.isNotBlank()) DetailLine(stringResource(R.string.detail_title), log.title)
+                if (log.text.isNotBlank()) DetailLine(stringResource(R.string.detail_text), log.text)
+                DetailLine(stringResource(R.string.detail_package), log.packageName)
+                DetailLine(stringResource(R.string.detail_time), fullTimeOf(log.time))
+                if (log.matched) {
+                    val count = log.firedRuleIds.split(",").count { it.isNotBlank() }
+                    DetailLine(stringResource(R.string.detail_rules), count.toString())
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailLine(label: String, value: String) {
+    Row(Modifier.padding(vertical = 2.dp)) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(72.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
@@ -287,6 +394,9 @@ private fun EmptyHistory() {
 
 private fun timeOf(t: Long): String =
     java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(t))
+
+private fun fullTimeOf(t: Long): String =
+    java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date(t))
 
 private fun groupLogs(logs: List<NotificationLog>, grouping: Grouping): List<Pair<String, List<NotificationLog>>> {
     val cal = Calendar.getInstance()

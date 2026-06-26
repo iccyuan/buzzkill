@@ -22,6 +22,11 @@
     <string name="group_by_day">By day</string>
     <string name="group_by_week">By week</string>
     <string name="filter_all_apps">All apps</string>
+    <string name="detail_title">Title</string>
+    <string name="detail_text">Content</string>
+    <string name="detail_package">Package</string>
+    <string name="detail_time">Time</string>
+    <string name="detail_rules">Matched rules</string>
     <string name="stat_peak_hour">Peak time</string>
     <string name="stat_busiest_day">Busiest day</string>
     <string name="stat_total">%d notifications</string>

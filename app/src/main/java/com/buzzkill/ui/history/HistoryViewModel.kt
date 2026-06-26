@@ -17,4 +17,5 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun clear() = viewModelScope.launch { repo.clear() }
+    fun delete(log: NotificationLog) = viewModelScope.launch { repo.deleteById(log.id) }
 }

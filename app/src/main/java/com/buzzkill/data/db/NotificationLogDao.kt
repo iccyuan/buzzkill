@@ -20,6 +20,9 @@ interface NotificationLogDao {
     @Query("SELECT COUNT(*) FROM notification_log")
     suspend fun count(): Int
 
+    @Query("DELETE FROM notification_log WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
     /** Keep only the newest [keep] rows. */
     @Query("DELETE FROM notification_log WHERE id NOT IN (SELECT id FROM notification_log ORDER BY time DESC LIMIT :keep)")
     suspend fun prune(keep: Int)

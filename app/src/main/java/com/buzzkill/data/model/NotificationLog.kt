@@ -1,10 +1,15 @@
 package com.buzzkill.data.model
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /** One recorded notification the listener observed, with what the engine did to it. */
-@Entity(tableName = "notification_log")
+@Entity(
+    tableName = "notification_log",
+    // Indexed for the ORDER BY time DESC list query and per-app grouping/filtering.
+    indices = [Index("time"), Index("packageName")],
+)
 data class NotificationLog(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

@@ -88,18 +88,17 @@ object ComponentCatalog {
         },
     )
 
+    // Ordered by how often they're used: the everyday notification-management actions
+    // first, niche/power-user actions (field editing, variables, integrations) last.
     val actions: List<CatalogEntry<Action>> = listOf(
-        CatalogEntry(R.string.cat_act_replace, R.string.cat_act_replace_desc, Icons.Filled.FindReplace, Blue) {
-            Action.ReplaceTextAction(Ids.next())
-        },
-        CatalogEntry(R.string.cat_act_setfield, R.string.cat_act_setfield_desc, Icons.Filled.Edit, Blue) {
-            Action.SetFieldAction(Ids.next())
-        },
         CatalogEntry(R.string.cat_act_discard, R.string.cat_act_discard_desc, Icons.Filled.VisibilityOff, Gray) {
             Action.DiscardAction(Ids.next())
         },
         CatalogEntry(R.string.cat_act_dismiss, R.string.cat_act_dismiss_desc, Icons.Filled.Close, Red) {
             Action.DismissAction(Ids.next())
+        },
+        CatalogEntry(R.string.cat_act_mute, R.string.cat_act_mute_desc, Icons.Filled.NotificationsOff, Red) {
+            Action.MuteAppAction(Ids.next())
         },
         CatalogEntry(R.string.cat_act_snooze, R.string.cat_act_snooze_desc, Icons.Filled.Snooze, Indigo) {
             Action.SnoozeAction(Ids.next())
@@ -110,11 +109,11 @@ object ComponentCatalog {
         CatalogEntry(R.string.cat_act_sound, R.string.cat_act_sound_desc, Icons.Filled.Vibration, Pink) {
             Action.SoundVibrationAction(Ids.next())
         },
-        CatalogEntry(R.string.cat_act_autoreply, R.string.cat_act_autoreply_desc, Icons.AutoMirrored.Filled.Reply, Teal) {
-            Action.AutoReplyAction(Ids.next())
-        },
         CatalogEntry(R.string.cat_act_readaloud, R.string.cat_act_readaloud_desc, Icons.Filled.RecordVoiceOver, Purple) {
             Action.ReadAloudAction(Ids.next())
+        },
+        CatalogEntry(R.string.cat_act_autoreply, R.string.cat_act_autoreply_desc, Icons.AutoMirrored.Filled.Reply, Teal) {
+            Action.AutoReplyAction(Ids.next())
         },
         CatalogEntry(R.string.cat_act_wake, R.string.cat_act_wake_desc, Icons.Filled.LightMode, Orange) {
             Action.WakeScreenAction(Ids.next())
@@ -122,17 +121,20 @@ object ComponentCatalog {
         CatalogEntry(R.string.cat_act_toast, R.string.cat_act_toast_desc, Icons.Filled.Sms, Green) {
             Action.ToastAction(Ids.next())
         },
+        CatalogEntry(R.string.cat_act_setfield, R.string.cat_act_setfield_desc, Icons.Filled.Edit, Blue) {
+            Action.SetFieldAction(Ids.next())
+        },
+        CatalogEntry(R.string.cat_act_replace, R.string.cat_act_replace_desc, Icons.Filled.FindReplace, Blue) {
+            Action.ReplaceTextAction(Ids.next())
+        },
         CatalogEntry(R.string.cat_act_setvar, R.string.cat_act_setvar_desc, Icons.Filled.DataObject, Indigo) {
             Action.SetVariableAction(Ids.next())
-        },
-        CatalogEntry(R.string.cat_act_tasker, R.string.cat_act_tasker_desc, Icons.Filled.Bolt, Orange) {
-            Action.RunTaskerAction(Ids.next())
         },
         CatalogEntry(R.string.cat_act_webhook, R.string.cat_act_webhook_desc, Icons.Filled.Cloud, Blue) {
             Action.WebhookAction(Ids.next())
         },
-        CatalogEntry(R.string.cat_act_mute, R.string.cat_act_mute_desc, Icons.Filled.NotificationsOff, Red) {
-            Action.MuteAppAction(Ids.next())
+        CatalogEntry(R.string.cat_act_tasker, R.string.cat_act_tasker_desc, Icons.Filled.Bolt, Orange) {
+            Action.RunTaskerAction(Ids.next())
         },
     )
 }

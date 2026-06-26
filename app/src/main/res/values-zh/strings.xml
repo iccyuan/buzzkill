@@ -22,6 +22,11 @@
     <string name="group_by_day">按天</string>
     <string name="group_by_week">按周</string>
     <string name="filter_all_apps">全部应用</string>
+    <string name="detail_title">标题</string>
+    <string name="detail_text">内容</string>
+    <string name="detail_package">包名</string>
+    <string name="detail_time">时间</string>
+    <string name="detail_rules">命中规则</string>
     <string name="stat_peak_hour">高峰时段</string>
     <string name="stat_busiest_day">最忙</string>
     <string name="stat_total">%d 条通知</string>
