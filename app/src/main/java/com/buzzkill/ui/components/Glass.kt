@@ -74,27 +74,30 @@ fun GlassBackdrop(state: HazeState, modifier: Modifier = Modifier) {
     } else {
         listOf(IOSColors.GradientTopLight, IOSColors.GradientBottomLight)
     }
-    // Softer redesign: pale pastel blobs at low opacity, heavily blurred into a gentle
-    // cloud-like wash (large overlapping discs rather than punchy saturated circles).
-    val a = if (dark) 0.16f else 0.10f
-    val blue = Color(0xFF8FB8FF).copy(alpha = a)
-    val lilac = Color(0xFFC7AEF0).copy(alpha = a)
-    val pink = Color(0xFFFFB6C9).copy(alpha = a)
-    val mint = Color(0xFFA6E7DB).copy(alpha = a)
-    val peach = Color(0xFFFFD2A8).copy(alpha = a)
+    // Coloured blobs give the frosted glass something to actually blur — without enough
+    // colour/contrast here, the bars and cards read as flat white. Kept colourful but
+    // softened by a heavy blur into a dreamy wash.
+    val a = if (dark) 0.24f else 0.18f
+    val blue = IOSColors.Blue.copy(alpha = a)
+    val purple = IOSColors.Purple.copy(alpha = a)
+    val pink = Color(0xFFFF5C7A).copy(alpha = a)
+    val teal = Color(0xFF32D6C8).copy(alpha = a)
+    val orange = IOSColors.Orange.copy(alpha = a)
     Box(modifier.fillMaxSize().hazeSourceLayer(state)) {
-        // Big radii + a strong blur melt the discs into one another for a soft gradient.
-        Canvas(Modifier.fillMaxSize().blur(96.dp, BlurredEdgeTreatment.Rectangle)) {
+        // Heavily blur the circles into a soft, dreamy colour wash.
+        Canvas(Modifier.fillMaxSize().blur(60.dp, BlurredEdgeTreatment.Rectangle)) {
             drawRect(Brush.verticalGradient(grad))
             fun disc(color: Color, cx: Float, cy: Float, r: Float) {
                 drawCircle(color, size.minDimension * r, Offset(size.width * cx, size.height * cy))
             }
-            disc(blue, 0.20f, 0.10f, 0.46f)
-            disc(lilac, 0.86f, 0.20f, 0.48f)
-            disc(pink, 0.28f, 0.48f, 0.44f)
-            disc(mint, 0.84f, 0.62f, 0.46f)
-            disc(peach, 0.16f, 0.80f, 0.46f)
-            disc(lilac, 0.80f, 0.94f, 0.46f)
+            disc(blue, 0.16f, 0.08f, 0.34f)
+            disc(purple, 0.88f, 0.12f, 0.36f)
+            disc(pink, 0.28f, 0.40f, 0.30f)
+            disc(teal, 0.82f, 0.50f, 0.32f)
+            disc(orange, 0.14f, 0.66f, 0.30f)
+            disc(purple, 0.74f, 0.78f, 0.32f)
+            disc(blue, 0.30f, 0.94f, 0.30f)
+            disc(pink, 0.90f, 0.95f, 0.28f)
         }
     }
 }
