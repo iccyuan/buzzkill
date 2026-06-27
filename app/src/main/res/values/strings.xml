@@ -178,6 +178,9 @@
     <string name="field_subtext">Sub text</string>
     <string name="field_infotext">Info text</string>
     <string name="field_ticker">Ticker</string>
+    <string name="field_category">Category</string>
+    <string name="field_channel">Channel</string>
+    <string name="field_sender">Sender</string>
     <string name="field_appname">App name</string>
     <string name="field_any">Any field</string>
 
@@ -256,7 +259,10 @@
     <string name="cat_act_webhook">Webhook</string>
     <string name="cat_act_webhook_desc">Send an HTTP request</string>
     <string name="cat_act_mute">Mute app</string>
-    <string name="cat_act_mute_desc">Suppress this app for a while</string>
+    <string name="cat_act_mute_desc">Silence this app until the rule is turned off</string>
+    <string name="mute_explain">Silences all notifications from this app until you turn off (or delete) this rule.</string>
+    <string name="cat_act_digest">Digest</string>
+    <string name="cat_act_digest_desc">Bundle bursts into one summary</string>
     <string name="danmaku_switch">Show as danmaku</string>
     <string name="danmaku_switch_hint">Scroll matches across the screen instead of the native notification</string>
     <string name="grant_overlay">Grant overlay permission</string>
@@ -296,7 +302,8 @@
     <string name="sum_act_setvar">Set $%1$s = \"%2$s\"</string>
     <string name="sum_act_tasker">Run Tasker task \"%s\"</string>
     <string name="sum_act_webhook">%1$s %2$s</string>
-    <string name="sum_act_mute">Mute this app for %dm</string>
+    <string name="sum_act_mute">Mute this app until the rule is off</string>
+    <string name="sum_act_digest">Digest every %dm</string>
 
     <string-array name="weekday_full">
         <item>Monday</item>
@@ -322,4 +329,34 @@
     <string name="channel_activity">BuzzKill activity</string>
     <string name="channel_activity_desc">Status of the BuzzKill service</string>
     <string name="channel_modified">Modified (%s)</string>
+    <string name="channel_digest">Digests</string>
+    <string name="channel_digest_desc">Bundled notification summaries</string>
+
+    <!-- Digest action -->
+    <string name="digest_window_minutes">Window (minutes)</string>
+    <string name="digest_count">%d notifications</string>
+
+    <!-- History → create rule -->
+    <string name="history_create_rule">Create rule from this</string>
+
+    <!-- Rule simulator -->
+    <string name="sim_title">Test</string>
+    <string name="sim_sample_title">Sample title</string>
+    <string name="sim_sample_text">Sample text</string>
+    <string name="sim_hint">Enter a sample notification to see what this rule would do.</string>
+    <string name="sim_match">Matches ✓</string>
+    <string name="sim_no_match">No match</string>
+    <string name="sim_outcome">Result: %s</string>
+    <string name="sim_field">%1$s → %2$s</string>
+    <string name="sim_effects">Side effects: %s</string>
+
+    <!-- Insights -->
+    <string name="settings_insights">Insights</string>
+    <string name="insights_title">Insights</string>
+    <string name="insights_total">Total notifications</string>
+    <string name="insights_matched">Matched by rules</string>
+    <string name="insights_top_apps">Noisiest apps</string>
+    <string name="insights_top_rules">Top rules</string>
+    <string name="insights_fires">%d fires</string>
+    <string name="insights_none">No data yet</string>
 </resources>

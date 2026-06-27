@@ -27,10 +27,40 @@ class RuleEngine {
         return appMatches(rule, packageName) && triggersMatch(rule, ctx, mutableMapOf())
     }
 
+    /**
+     * 编辑器测试器：对一条样例通知做内容层面的完整模拟——评估应用 + 触发器，
+     * 应用所有动作并产出结果 [Decision]（忽略时间/设备条件，与 [previewMatches] 同口径）。
+     */
+    fun simulate(
+        rule: Rule,
+        packageName: String,
+        appName: String,
+        title: String,
+        text: String,
+    ): Decision {
+        val fields = mutableMapOf<NotificationField, String>()
+        if (title.isNotEmpty()) fields[NotificationField.TITLE] = title
+        if (text.isNotEmpty()) fields[NotificationField.TEXT] = text
+        val ctx = MatchContext(packageName, appName, fields, false, false, PREVIEW_DEVICE)
+        val decision = Decision()
+        val captures = mutableMapOf<String, String>()
+        if (appMatches(rule, packageName) && triggersMatch(rule, ctx, captures)) {
+            ctx.captures.putAll(captures)
+            applyActions(rule, ctx, decision)
+            if (rule.showDanmaku) {
+                decision.sideEffects.add(
+                    SideEffect.Danmaku(TemplateEngine.render(DANMAKU_TEMPLATE, ctx), DANMAKU_DURATION_MS)
+                )
+            }
+            decision.matched = true
+        }
+        return decision
+    }
+
     fun evaluate(ctx: MatchContext, rules: List<Rule>): Decision {
         val decision = Decision()
-        // 应用级静音时间窗口会短路一切处理。
-        if (VariableStore.isAppMuted(ctx.packageName, ctx.device.nowMillis)) {
+        // 被静音的应用会短路一切处理。
+        if (VariableStore.isAppMuted(ctx.packageName)) {
             decision.matched = true
             decision.discard = true
             return decision
@@ -142,12 +172,12 @@ class RuleEngine {
 
     private fun applyActions(rule: Rule, ctx: MatchContext, decision: Decision) {
         for (action in rule.actions) {
-            applyAction(action, ctx, decision)
+            applyAction(action, rule.id, ctx, decision)
             if (decision.discard) return
         }
     }
 
-    private fun applyAction(action: Action, ctx: MatchContext, decision: Decision) {
+    private fun applyAction(action: Action, ruleId: Long, ctx: MatchContext, decision: Decision) {
         when (action) {
             is Action.ReplaceTextAction -> {
                 val current = currentField(action.field, ctx, decision)
@@ -202,7 +232,19 @@ class RuleEngine {
                     )
                 )
             is Action.MuteAppAction ->
-                decision.sideEffects.add(SideEffect.MuteApp(ctx.packageName, action.minutes))
+                decision.sideEffects.add(SideEffect.MuteApp(ctx.packageName, ruleId))
+            is Action.DigestAction -> {
+                decision.sideEffects.add(
+                    SideEffect.Digest(
+                        pkg = ctx.packageName,
+                        appName = ctx.appName,
+                        line = TemplateEngine.render(action.template, ctx),
+                        windowMinutes = action.windowMinutes,
+                    )
+                )
+                // 抑制单条通知；摘要会在时间窗结束时统一发布。
+                decision.discard = true
+            }
         }
     }
 

@@ -16,6 +16,7 @@ class RuleRepository private constructor(private val dao: RuleDao) {
     fun observeAll(): Flow<List<Rule>> = dao.observeAll()
     fun observeById(id: Long): Flow<Rule?> = dao.observeById(id)
     suspend fun enabledRules(): List<Rule> = dao.enabledRules()
+    suspend fun allOnce(): List<Rule> = dao.allOnce()
     suspend fun byId(id: Long): Rule? = dao.byId(id)
 
     suspend fun upsert(rule: Rule): Long {

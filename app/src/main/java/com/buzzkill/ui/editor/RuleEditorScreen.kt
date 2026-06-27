@@ -50,6 +50,7 @@ import com.buzzkill.data.model.Action
 import com.buzzkill.data.model.Condition
 import com.buzzkill.data.model.LogicMode
 import com.buzzkill.data.model.Trigger
+import com.buzzkill.engine.SideEffect
 import com.buzzkill.ui.Localize
 import com.buzzkill.ui.common.LabeledTextField
 import com.buzzkill.ui.components.GlassScaffold
@@ -260,6 +261,9 @@ fun RuleEditorScreen(
             // 实时预览匹配该规则的近期通知。
             PreviewSection(rule)
 
+            // 交互式测试器：输入一条样例通知，查看该规则的处理结果。
+            SimulatorSection(rule)
+
             if (ruleId != 0L) {
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     IOSFilledButton(
@@ -372,6 +376,89 @@ private fun PreviewSection(rule: com.buzzkill.data.model.Rule) {
             }
         }
     }
+}
+
+/** 交互式测试器：输入一条样例通知，调用引擎模拟并展示命中/改写/副作用结果。 */
+@Composable
+private fun SimulatorSection(rule: com.buzzkill.data.model.Rule) {
+    val engine = remember { com.buzzkill.engine.RuleEngine() }
+    var title by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf("") }
+    val pkg = rule.appPackages.firstOrNull() ?: "com.example.app"
+    val appName = pkg.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+    val decision = remember(rule, title, text) {
+        if (title.isBlank() && text.isBlank()) null
+        else engine.simulate(rule, pkg, appName, title, text)
+    }
+    InsetGroupedSection(
+        header = stringResource(R.string.sim_title),
+        footer = stringResource(R.string.sim_hint),
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            LabeledTextField(stringResource(R.string.sim_sample_title), title) { title = it }
+            Spacer(Modifier.height(6.dp))
+            LabeledTextField(stringResource(R.string.sim_sample_text), text) { text = it }
+        }
+        if (decision != null) {
+            HairlineDivider(startInset = 16.dp)
+            SimResult(decision)
+        }
+    }
+}
+
+@Composable
+private fun SimResult(decision: com.buzzkill.engine.Decision) {
+    Column(Modifier.padding(16.dp)) {
+        Text(
+            stringResource(if (decision.matched) R.string.sim_match else R.string.sim_no_match),
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (decision.matched) IOSColors.Green else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (!decision.matched) return@Column
+        val outcome = stringResource(
+            when {
+                decision.discard -> R.string.outcome_discarded
+                decision.needsRepost -> R.string.outcome_modified
+                decision.dismiss -> R.string.outcome_dismissed
+                decision.snoozeMinutes != null -> R.string.outcome_snoozed
+                else -> R.string.outcome_matched
+            }
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            stringResource(R.string.sim_outcome, outcome),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        decision.fieldEdits.forEach { (field, value) ->
+            Text(
+                stringResource(R.string.sim_field, Localize.field(field), value),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        val effects = decision.sideEffects.mapNotNull { effectName(it) }
+        if (effects.isNotEmpty()) {
+            Text(
+                stringResource(R.string.sim_effects, effects.joinToString(", ")),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun effectName(effect: SideEffect): String? = when (effect) {
+    is SideEffect.ReadAloud -> stringResource(R.string.cat_act_readaloud)
+    is SideEffect.Toast -> stringResource(R.string.cat_act_toast)
+    is SideEffect.WakeScreen -> stringResource(R.string.cat_act_wake)
+    is SideEffect.AutoReply -> stringResource(R.string.cat_act_autoreply)
+    is SideEffect.Webhook -> stringResource(R.string.cat_act_webhook)
+    is SideEffect.RunTasker -> stringResource(R.string.cat_act_tasker)
+    is SideEffect.MuteApp -> stringResource(R.string.cat_act_mute)
+    is SideEffect.Digest -> stringResource(R.string.cat_act_digest)
+    is SideEffect.Danmaku -> stringResource(R.string.danmaku_switch)
 }
 
 /** 已选应用以图标 + 名称标签的形式展示；点击任意位置都会打开选择器。 */

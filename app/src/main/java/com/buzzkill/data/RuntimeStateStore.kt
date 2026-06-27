@@ -34,12 +34,11 @@ object RuntimeStateStore {
             val now = System.currentTimeMillis()
 
             val vars = decode(prefs.getString(KEY_VARS, null), stringMap, emptyMap())
-            // 剔除已经到期的冷却/静音，避免无限累积陈旧条目。
+            // 冷却带到期时间戳，剔除已过期的；静音是“包名 -> 规则 id”，无到期时间，原样恢复。
             val cooldowns = decode(prefs.getString(KEY_COOLDOWNS, null), longMap, emptyMap())
                 .mapKeys { it.key.toLongOrNull() ?: -1L }
                 .filter { it.key >= 0 && it.value > now }
             val mutes = decode(prefs.getString(KEY_MUTES, null), longMap, emptyMap())
-                .filterValues { it > now }
 
             VariableStore.restore(vars, cooldowns, mutes)
             VariableStore.setPersistence { persist(prefs) }

@@ -18,6 +18,11 @@ class NotificationLogRepository private constructor(private val dao: Notificatio
     suspend fun clear() = dao.clear()
     suspend fun deleteById(id: Long) = dao.deleteById(id)
 
+    // --- 洞察 ---
+    suspend fun total(): Int = dao.count()
+    suspend fun matched(): Int = dao.matchedCount()
+    suspend fun topApps(limit: Int = 8): List<com.buzzkill.data.db.AppCount> = dao.topApps(limit)
+
     suspend fun add(log: NotificationLog) {
         dao.insert(log)
         // 在不对每次插入都计数的情况下，使表的大小保持有界。

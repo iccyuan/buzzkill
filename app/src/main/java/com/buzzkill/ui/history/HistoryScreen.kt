@@ -58,6 +58,7 @@ private enum class Grouping { DAY, WEEK }
 fun HistoryScreen(
     onBack: (() -> Unit)? = null,
     bottomBar: (@Composable () -> Unit)? = null,
+    onCreateRule: ((Long) -> Unit)? = null,
     vm: HistoryViewModel = viewModel(),
 ) {
     val logs by vm.logs.collectAsStateWithLifecycle()
@@ -107,10 +108,11 @@ fun HistoryScreen(
             }
             Spacer(Modifier.height(12.dp))
 
-            // 只有分组后的日志列表会滚动。
+            // 只有分组后的日志列表会滚动。用 weight 占据表头之后的剩余空间——
+            // 若用 fillMaxSize 会撑出父容器、把列表底部裁掉，导致显示不全。
             val groups = groupLogs(filtered, grouping)
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.weight(1f).fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
             groups.forEach { (header, items) ->
@@ -126,7 +128,13 @@ fun HistoryScreen(
                     InsetGroupedSection {
                         items.forEachIndexed { i, log ->
                             if (i > 0) HairlineDivider(startInset = 16.dp)
-                            SwipeableLogRow(log = log, onDelete = { vm.delete(log) })
+                            SwipeableLogRow(
+                                log = log,
+                                onDelete = { vm.delete(log) },
+                                onCreateRule = onCreateRule?.let { cb ->
+                                    { vm.createRuleFrom(log) { id -> cb(id) } }
+                                },
+                            )
                         }
                     }
                 }
@@ -238,7 +246,11 @@ private fun Chip(label: String, active: Boolean, onClick: () -> Unit) {
 
 /** 一条日志行，向左滑动可露出一个可点击的删除按钮。 */
 @Composable
-private fun SwipeableLogRow(log: NotificationLog, onDelete: () -> Unit) {
+private fun SwipeableLogRow(
+    log: NotificationLog,
+    onDelete: () -> Unit,
+    onCreateRule: (() -> Unit)? = null,
+) {
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val density = androidx.compose.ui.platform.LocalDensity.current
     val revealPx = with(density) { 80.dp.toPx() }
@@ -287,13 +299,13 @@ private fun SwipeableLogRow(log: NotificationLog, onDelete: () -> Unit) {
                     },
                 ),
         ) {
-            LogRow(log)
+            LogRow(log, onCreateRule)
         }
     }
 }
 
 @Composable
-private fun LogRow(log: NotificationLog) {
+private fun LogRow(log: NotificationLog, onCreateRule: (() -> Unit)? = null) {
     // 以 id 作为 key，这样当列表发生变化（例如删除后）时，展开状态能跟随其对应的日志。
     var expanded by remember(log.id) { mutableStateOf(false) }
     Column(
@@ -343,6 +355,14 @@ private fun LogRow(log: NotificationLog) {
                 if (log.matched) {
                     val count = log.firedRuleIds.split(",").count { it.isNotBlank() }
                     DetailLine(stringResource(R.string.detail_rules), count.toString())
+                }
+                if (onCreateRule != null) {
+                    TextButton(
+                        onClick = onCreateRule,
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                    ) {
+                        Text(stringResource(R.string.history_create_rule))
+                    }
                 }
             }
         }

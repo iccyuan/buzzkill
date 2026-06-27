@@ -194,8 +194,16 @@ private fun ActionFields(action: Action, onChange: (Action) -> Unit) {
             }
             TemplateHint()
         }
-        is Action.MuteAppAction -> IntField(stringResource(R.string.minutes), a.minutes) {
-            onChange(a.copy(minutes = it))
+        is Action.MuteAppAction -> Text(stringResource(R.string.mute_explain))
+        is Action.DigestAction -> Column {
+            IntField(stringResource(R.string.digest_window_minutes), a.windowMinutes) {
+                onChange(a.copy(windowMinutes = it))
+            }
+            Spacer(Modifier.height(6.dp))
+            LabeledTextField(stringResource(R.string.template), a.template) {
+                onChange(a.copy(template = it))
+            }
+            TemplateHint()
         }
     }
 }
@@ -228,5 +236,6 @@ private fun actionTitle(action: Action): String = stringResource(
         is Action.RunTaskerAction -> R.string.cat_act_tasker
         is Action.WebhookAction -> R.string.cat_act_webhook
         is Action.MuteAppAction -> R.string.cat_act_mute
+        is Action.DigestAction -> R.string.cat_act_digest
     }
 )

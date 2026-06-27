@@ -61,7 +61,13 @@ class BuzzKillListenerService : NotificationListenerService() {
                 Log.i(TAG, "rules loaded: ${activeRules.size} enabled of ${it.size}")
             }
         }
-        scope.launch { settings.masterEnabled.collectLatest { masterEnabled = it } }
+        scope.launch {
+            settings.masterEnabled.collectLatest {
+                masterEnabled = it
+                // 关闭总开关同时解除所有应用静音。
+                if (!it) com.buzzkill.engine.VariableStore.unmuteAll()
+            }
+        }
         scope.launch { settings.logActivity.collectLatest { logActivity = it } }
         Log.i(TAG, "service onCreate")
     }
@@ -120,7 +126,9 @@ class BuzzKillListenerService : NotificationListenerService() {
             applyDecision(sbn, decision, appName)
             recordFires(decision)
         }
-        if (logActivity) logNotification(sbn, appName, decision)
+        // 常驻通知（音乐、下载、前台服务等）不写入历史，避免把历史刷满。
+        // 规则仍会照常对其求值——这里只跳过记录。
+        if (logActivity && !sbn.isOngoing) logNotification(sbn, appName, decision)
     }
 
     private suspend fun logNotification(sbn: StatusBarNotification, appName: String, decision: Decision) {

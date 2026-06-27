@@ -30,6 +30,9 @@ object Localize {
         NotificationField.SUB_TEXT -> R.string.field_subtext
         NotificationField.INFO_TEXT -> R.string.field_infotext
         NotificationField.TICKER -> R.string.field_ticker
+        NotificationField.CATEGORY -> R.string.field_category
+        NotificationField.CHANNEL -> R.string.field_channel
+        NotificationField.SENDER -> R.string.field_sender
         NotificationField.APP_NAME -> R.string.field_appname
         NotificationField.ANY -> R.string.field_any
     }
@@ -148,6 +151,7 @@ object Localize {
         is Action.SetVariableAction -> stringResource(R.string.sum_act_setvar, a.name, a.valueTemplate)
         is Action.RunTaskerAction -> stringResource(R.string.sum_act_tasker, a.taskName)
         is Action.WebhookAction -> stringResource(R.string.sum_act_webhook, a.method.name, a.url)
-        is Action.MuteAppAction -> stringResource(R.string.sum_act_mute, a.minutes)
+        is Action.MuteAppAction -> stringResource(R.string.sum_act_mute)
+        is Action.DigestAction -> stringResource(R.string.sum_act_digest, a.windowMinutes)
     }
 }

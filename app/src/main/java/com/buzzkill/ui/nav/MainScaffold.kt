@@ -48,7 +48,10 @@ enum class MainTab { RULES, HISTORY, ADD, SETTINGS }
  * 它无法与标签翻页的滑动手势区分开来。）
  */
 @Composable
-fun MainScaffold(onOpenRule: (Long) -> Unit) {
+fun MainScaffold(
+    onOpenRule: (Long) -> Unit,
+    onOpenInsights: () -> Unit = {},
+) {
     var tab by rememberSaveable { mutableStateOf(MainTab.RULES) }
     var addSession by remember { mutableIntStateOf(0) }
     val bar: @Composable () -> Unit = {
@@ -66,7 +69,7 @@ fun MainScaffold(onOpenRule: (Long) -> Unit) {
             onNewRule = { addSession++; tab = MainTab.ADD },
             bottomBar = bar,
         )
-        MainTab.HISTORY -> HistoryScreen(bottomBar = bar)
+        MainTab.HISTORY -> HistoryScreen(bottomBar = bar, onCreateRule = onOpenRule)
         MainTab.ADD -> androidx.compose.runtime.key(addSession) {
             RuleEditorScreen(
                 ruleId = 0L,
@@ -75,7 +78,7 @@ fun MainScaffold(onOpenRule: (Long) -> Unit) {
                 vm = androidx.lifecycle.viewmodel.compose.viewModel(key = "new-rule-$addSession"),
             )
         }
-        MainTab.SETTINGS -> SettingsScreen(bottomBar = bar)
+        MainTab.SETTINGS -> SettingsScreen(bottomBar = bar, onOpenInsights = onOpenInsights)
     }
 }
 

@@ -139,13 +139,24 @@ sealed class Action {
     ) : Action()
 
     /**
-     * 在 [minutes] 分钟内静音触发应用的所有通知。该功能实现为
-     * 以包名为键的临时丢弃时间窗口。
+     * 无限期静音触发应用的所有通知，直到用户在设置中手动取消。
+     * 实现为以包名为键的丢弃开关。
      */
     @Serializable
     @SerialName("muteApp")
     data class MuteAppAction(
         override val id: String,
-        val minutes: Int = 30,
+    ) : Action()
+
+    /**
+     * 聚合：抑制单条通知，在 [windowMinutes] 分钟的时间窗内把命中规则的多条通知
+     * 攒成一条摘要通知发布，治理高频应用的刷屏。[template] 决定每条被收纳的内容。
+     */
+    @Serializable
+    @SerialName("digest")
+    data class DigestAction(
+        override val id: String,
+        val windowMinutes: Int = 5,
+        val template: String = "{title} {text}",
     ) : Action()
 }

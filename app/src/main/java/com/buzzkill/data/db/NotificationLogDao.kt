@@ -6,6 +6,9 @@ import androidx.room.Query
 import com.buzzkill.data.model.NotificationLog
 import kotlinx.coroutines.flow.Flow
 
+/** 某个应用在历史日志中的通知计数（用于洞察面板）。 */
+data class AppCount(val packageName: String, val appName: String, val count: Int)
+
 @Dao
 interface NotificationLogDao {
     @Insert
@@ -19,6 +22,16 @@ interface NotificationLogDao {
 
     @Query("SELECT COUNT(*) FROM notification_log")
     suspend fun count(): Int
+
+    @Query("SELECT COUNT(*) FROM notification_log WHERE matched = 1")
+    suspend fun matchedCount(): Int
+
+    /** 按应用聚合的通知数量，从多到少排列，用于“最吵的应用”洞察。 */
+    @Query(
+        "SELECT packageName, appName, COUNT(*) AS count FROM notification_log " +
+            "GROUP BY packageName ORDER BY count DESC LIMIT :limit"
+    )
+    suspend fun topApps(limit: Int): List<AppCount>
 
     @Query("DELETE FROM notification_log WHERE id = :id")
     suspend fun deleteById(id: Long)

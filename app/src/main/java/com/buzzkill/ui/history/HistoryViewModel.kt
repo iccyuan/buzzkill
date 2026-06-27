@@ -4,7 +4,13 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.buzzkill.data.NotificationLogRepository
+import com.buzzkill.data.RuleRepository
+import com.buzzkill.data.model.MatchMode
+import com.buzzkill.data.model.NotificationField
 import com.buzzkill.data.model.NotificationLog
+import com.buzzkill.data.model.Rule
+import com.buzzkill.data.model.Trigger
+import com.buzzkill.ui.Ids
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -12,10 +18,30 @@ import kotlinx.coroutines.launch
 
 class HistoryViewModel(app: Application) : AndroidViewModel(app) {
     private val repo = NotificationLogRepository.get(app)
+    private val rules = RuleRepository.get(app)
 
     val logs: StateFlow<List<NotificationLog>> = repo.observeRecent()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun clear() = viewModelScope.launch { repo.clear() }
     fun delete(log: NotificationLog) = viewModelScope.launch { repo.deleteById(log.id) }
+
+    /**
+     * 根据一条历史通知预填一条新规则（限定该应用 + 一个文本触发器），插入后回调其 id，
+     * 便于上层直接打开编辑器继续完善。
+     */
+    fun createRuleFrom(log: NotificationLog, onCreated: (Long) -> Unit) = viewModelScope.launch {
+        val query = log.text.ifBlank { log.title }
+        val field = if (log.text.isNotBlank()) NotificationField.TEXT else NotificationField.TITLE
+        val triggers = if (query.isBlank()) emptyList()
+            else listOf(Trigger.TextTrigger(Ids.next(), field, MatchMode.CONTAINS, query.take(80)))
+        val id = rules.upsert(
+            Rule(
+                name = log.appName.ifBlank { log.packageName },
+                appPackages = listOf(log.packageName),
+                triggers = triggers,
+            )
+        )
+        onCreated(id)
+    }
 }

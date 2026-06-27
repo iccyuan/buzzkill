@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FindReplace
 import androidx.compose.material.icons.filled.HourglassBottom
+import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NotificationsOff
@@ -101,6 +102,9 @@ object ComponentCatalog {
         CatalogEntry(R.string.cat_act_mute, R.string.cat_act_mute_desc, Icons.Filled.NotificationsOff, Red) {
             Action.MuteAppAction(Ids.next())
         },
+        CatalogEntry(R.string.cat_act_digest, R.string.cat_act_digest_desc, Icons.Filled.Inbox, Indigo) {
+            Action.DigestAction(Ids.next())
+        },
         CatalogEntry(R.string.cat_act_snooze, R.string.cat_act_snooze_desc, Icons.Filled.Snooze, Indigo) {
             Action.SnoozeAction(Ids.next())
         },
@@ -173,5 +177,6 @@ object ComponentVisuals {
         is Action.RunTaskerAction -> Icons.Filled.Bolt to Orange
         is Action.WebhookAction -> Icons.Filled.Cloud to Blue
         is Action.MuteAppAction -> Icons.Filled.NotificationsOff to Red
+        is Action.DigestAction -> Icons.Filled.Inbox to Indigo
     }
 }

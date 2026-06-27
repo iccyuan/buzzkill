@@ -13,6 +13,7 @@ import com.buzzkill.ui.editor.RuleEditorScreen
 object Routes {
     const val MAIN = "main"
     const val EDITOR = "editor/{ruleId}"
+    const val INSIGHTS = "insights"
     fun editor(ruleId: Long) = "editor/$ruleId"
 }
 
@@ -32,6 +33,7 @@ fun BuzzKillNavHost() {
         composable(Routes.MAIN) {
             MainScaffold(
                 onOpenRule = { id -> nav.navigate(Routes.editor(id)) },
+                onOpenInsights = { nav.navigate(Routes.INSIGHTS) },
             )
         }
         composable(
@@ -43,6 +45,9 @@ fun BuzzKillNavHost() {
                 ruleId = ruleId,
                 onDone = { nav.popBackStack() },
             )
+        }
+        composable(Routes.INSIGHTS) {
+            com.buzzkill.ui.insights.InsightsScreen(onBack = { nav.popBackStack() })
         }
     }
 }

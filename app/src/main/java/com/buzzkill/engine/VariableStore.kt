@@ -14,7 +14,9 @@ import java.util.concurrent.ConcurrentHashMap
 object VariableStore {
     private val variables = ConcurrentHashMap<String, String>()
     private val cooldownUntil = ConcurrentHashMap<Long, Long>()
-    private val muteUntil = ConcurrentHashMap<String, Long>()
+    // 被静音的应用：包名 -> 设置该静音的规则 id。无限期生效，直到拥有它的规则被
+    // 停用/删除（或总开关关闭）时自动解除——无需单独的“已静音”管理界面。
+    private val mutedBy = ConcurrentHashMap<String, Long>()
 
     /** 任一状态发生变化时触发；由 Android 层用于将快照异步落盘。 */
     @Volatile private var onChange: (() -> Unit)? = null
@@ -39,25 +41,42 @@ object VariableStore {
         onChange?.invoke()
     }
 
-    fun muteApp(pkg: String, until: Long) {
-        muteUntil[pkg] = until
+    /** 无限期静音 [pkg]，并记录设置它的规则 [ruleId]（用于规则停用时自动解除）。 */
+    fun muteApp(pkg: String, ruleId: Long) {
+        mutedBy[pkg] = ruleId
         onChange?.invoke()
     }
 
-    fun isAppMuted(pkg: String, now: Long): Boolean =
-        (muteUntil[pkg] ?: 0L) > now
+    fun isAppMuted(pkg: String): Boolean = mutedBy.containsKey(pkg)
+
+    /** 解除由指定规则设置的所有静音（规则被停用/删除时调用）。 */
+    fun unmuteByRule(ruleId: Long) {
+        // 可能有多个包由同一规则静音；一次性移除并在确有变化时触发持久化。
+        if (mutedBy.entries.removeAll { it.value == ruleId }) {
+            onChange?.invoke()
+        }
+    }
+
+    /** 解除全部静音（总开关关闭时调用）。 */
+    fun unmuteAll() {
+        if (mutedBy.isNotEmpty()) {
+            mutedBy.clear()
+            onChange?.invoke()
+        }
+    }
 
     fun clear() {
         variables.clear()
         cooldownUntil.clear()
-        muteUntil.clear()
+        mutedBy.clear()
         onChange?.invoke()
     }
 
     // --- 持久化支持（仅供 Android 层使用，核心逻辑不依赖于此）---
 
     fun cooldownsSnapshot(): Map<Long, Long> = cooldownUntil.toMap()
-    fun mutesSnapshot(): Map<String, Long> = muteUntil.toMap()
+    /** 包名 -> 拥有该静音的规则 id。 */
+    fun mutesSnapshot(): Map<String, Long> = mutedBy.toMap()
 
     /** 在启动时用已持久化的状态填充内存（仅在尚无对应键时灌入，避免覆盖更新的值）。 */
     fun restore(
@@ -67,7 +86,7 @@ object VariableStore {
     ) {
         vars.forEach { (k, v) -> variables.putIfAbsent(k, v) }
         cooldowns.forEach { (k, v) -> cooldownUntil.putIfAbsent(k, v) }
-        mutes.forEach { (k, v) -> muteUntil.putIfAbsent(k, v) }
+        mutes.forEach { (k, v) -> mutedBy.putIfAbsent(k, v) }
     }
 
     /** 注册（或以 null 解除）变更回调。 */

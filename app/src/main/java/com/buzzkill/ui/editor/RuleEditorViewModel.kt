@@ -83,6 +83,10 @@ class RuleEditorViewModel(app: Application) : AndroidViewModel(app) {
             val r = _rule.value
             val named = if (r.name.isBlank()) r.copy(name = "Untitled rule") else r
             repository.upsert(named)
+            // 若该规则被停用，解除它设置的应用静音。
+            if (!named.enabled && named.id != 0L) {
+                com.buzzkill.engine.VariableStore.unmuteByRule(named.id)
+            }
             onDone()
         }
     }
@@ -90,7 +94,10 @@ class RuleEditorViewModel(app: Application) : AndroidViewModel(app) {
     fun delete(onDone: () -> Unit) {
         viewModelScope.launch {
             val r = _rule.value
-            if (r.id != 0L) repository.delete(r)
+            if (r.id != 0L) {
+                repository.delete(r)
+                com.buzzkill.engine.VariableStore.unmuteByRule(r.id)
+            }
             onDone()
         }
     }

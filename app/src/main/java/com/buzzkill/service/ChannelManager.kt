@@ -22,6 +22,7 @@ class ChannelManager(private val context: Context) {
     companion object {
         const val HISTORY_CHANNEL = "buzzkill_activity"
         const val DEFAULT_REPOST = "buzzkill_repost_default"
+        const val DIGEST_CHANNEL = "buzzkill_digest"
     }
 
     fun ensureBaseChannels() {
@@ -31,6 +32,13 @@ class ChannelManager(private val context: Context) {
             NotificationManager.IMPORTANCE_LOW,
         ).apply { description = context.getString(com.buzzkill.R.string.channel_activity_desc) }
         nm.createNotificationChannel(activity)
+
+        val digest = NotificationChannel(
+            DIGEST_CHANNEL,
+            context.getString(com.buzzkill.R.string.channel_digest),
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply { description = context.getString(com.buzzkill.R.string.channel_digest_desc) }
+        nm.createNotificationChannel(digest)
     }
 
     /** 返回与所请求的提醒覆盖项相匹配的通知渠道 id。 */

@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -56,6 +57,7 @@ import com.buzzkill.ui.findActivity
 fun SettingsScreen(
     onBack: (() -> Unit)? = null,
     bottomBar: (@Composable () -> Unit)? = null,
+    onOpenInsights: () -> Unit = {},
     vm: SettingsViewModel = viewModel(),
 ) {
     val context = LocalContext.current
@@ -98,6 +100,16 @@ fun SettingsScreen(
                     icon = Icons.Filled.VisibilityOff,
                     iconColor = IOSColors.Indigo,
                     trailing = { IOSSwitch(hideFromRecents) { vm.setHideFromRecents(it) } },
+                )
+            }
+
+            // 统计洞察
+            InsetGroupedSection {
+                IOSRow(
+                    title = stringResource(R.string.settings_insights),
+                    icon = Icons.Filled.BarChart,
+                    iconColor = IOSColors.Purple,
+                    onClick = onOpenInsights,
                 )
             }
 

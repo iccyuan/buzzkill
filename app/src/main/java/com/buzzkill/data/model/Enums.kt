@@ -11,6 +11,12 @@ enum class NotificationField(val label: String) {
     SUB_TEXT("Sub text"),
     INFO_TEXT("Info text"),
     TICKER("Ticker"),
+    /** 通知类别（如 msg / email / call），来自 Notification.category。 */
+    CATEGORY("Category"),
+    /** 通知渠道 id，来自 Notification.channelId。 */
+    CHANNEL("Channel"),
+    /** 发信人/会话名（聊天类通知，best-effort 从 MessagingStyle 提取）。 */
+    SENDER("Sender"),
     APP_NAME("App name"),
     ANY("Any field");
 }

@@ -50,8 +50,14 @@ sealed class SideEffect {
     data class Toast(val text: String) : SideEffect()
     data class RunTasker(val taskName: String) : SideEffect()
     data class Webhook(val url: String, val method: HttpMethod, val body: String) : SideEffect()
-    data class MuteApp(val pkg: String, val minutes: Int) : SideEffect()
+    data class MuteApp(val pkg: String, val ruleId: Long) : SideEffect()
     data class Danmaku(val text: String, val durationMs: Long) : SideEffect()
+    data class Digest(
+        val pkg: String,
+        val appName: String,
+        val line: String,
+        val windowMinutes: Int,
+    ) : SideEffect()
 }
 
 /** 对重新发布通知的提醒行为所期望的更改。 */

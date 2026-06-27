@@ -34,16 +34,15 @@ class SideEffectExecutor(
                 is SideEffect.RunTasker -> runTasker(effect.taskName)
                 is SideEffect.Webhook -> fireWebhook(effect.url, effect.method, effect.body)
                 is SideEffect.MuteApp ->
-                    VariableStore.muteApp(effect.pkg, nowPlusMinutes(effect.minutes))
+                    VariableStore.muteApp(effect.pkg, effect.ruleId)
                 is SideEffect.Danmaku ->
                     DanmakuController.show(context, effect.text, effect.durationMs)
+                is SideEffect.Digest ->
+                    DigestController.add(context, effect.pkg, effect.appName, effect.line, effect.windowMinutes)
                 is SideEffect.AutoReply -> Unit // 由服务结合 sbn 处理
             }
         }
     }
-
-    private fun nowPlusMinutes(minutes: Int) =
-        System.currentTimeMillis() + minutes * 60_000L
 
     @SuppressLint("WakelockTimeout")
     private fun wakeScreen(durationMs: Long) {

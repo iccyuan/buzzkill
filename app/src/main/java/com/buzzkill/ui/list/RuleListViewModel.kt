@@ -24,6 +24,8 @@ class RuleListViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setEnabled(rule: Rule, enabled: Boolean) = viewModelScope.launch {
         repository.setEnabled(rule.id, enabled)
+        // 停用规则即解除它设置的应用静音。
+        if (!enabled) com.buzzkill.engine.VariableStore.unmuteByRule(rule.id)
     }
 
     fun setMasterEnabled(enabled: Boolean) = viewModelScope.launch {
@@ -32,6 +34,7 @@ class RuleListViewModel(app: Application) : AndroidViewModel(app) {
 
     fun delete(rule: Rule) = viewModelScope.launch {
         repository.delete(rule)
+        com.buzzkill.engine.VariableStore.unmuteByRule(rule.id)
     }
 
     fun duplicate(rule: Rule) = viewModelScope.launch {
