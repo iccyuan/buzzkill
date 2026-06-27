@@ -68,6 +68,16 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true   // 暴露 BuildConfig.VERSION_NAME 供应用内显示版本/检查更新
+    }
+
+    // 产物命名为 BuzzKill-<版本>-<构建类型>.apk，而非默认的 app-release.apk。
+    applicationVariants.all {
+        val variant = this
+        outputs.all {
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+                "BuzzKill-${variant.versionName}-${variant.buildType.name}.apk"
+        }
     }
     packaging {
         resources {

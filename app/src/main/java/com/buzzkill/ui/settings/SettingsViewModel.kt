@@ -3,9 +3,11 @@ package com.buzzkill.ui.settings
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.buzzkill.BuildConfig
 import com.buzzkill.data.HolidayProvider
 import com.buzzkill.data.RuleRepository
 import com.buzzkill.data.SettingsStore
+import com.buzzkill.data.UpdateChecker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -57,5 +59,18 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         holidayUpdating.value = false
         holidayUpdated.value = HolidayProvider.lastUpdated(getApplication())
         onResult(result.ok)
+    }
+
+    /** 当前安装的版本号，用于显示与更新比较。 */
+    val appVersion: String = BuildConfig.VERSION_NAME
+
+    val updateChecking = MutableStateFlow(false)
+
+    /** 检查 GitHub 是否有新版本。结果为 null 表示检查失败（网络等原因）。 */
+    fun checkUpdate(onResult: (UpdateChecker.Result?) -> Unit) = viewModelScope.launch {
+        updateChecking.value = true
+        val result = withContext(Dispatchers.IO) { UpdateChecker.check(appVersion) }
+        updateChecking.value = false
+        onResult(result)
     }
 }

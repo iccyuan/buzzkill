@@ -5,6 +5,8 @@ package com.buzzkill.ui.settings
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +23,8 @@ import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.buzzkill.R
 import com.buzzkill.data.LanguageStore
 import com.buzzkill.data.ThemeStore
+import com.buzzkill.data.UpdateChecker
 import com.buzzkill.service.NotificationAccess
 import com.buzzkill.ui.components.GlassScaffold
 import com.buzzkill.ui.components.HairlineDivider
@@ -67,6 +72,8 @@ fun SettingsScreen(
     val accessGranted = rememberNotificationAccessGranted()
     var showImport by remember { mutableStateOf(false) }
     val currentLang by LanguageStore.language.collectAsStateWithLifecycle()
+    val updateChecking by vm.updateChecking.collectAsStateWithLifecycle()
+    var pendingUpdate by remember { mutableStateOf<UpdateChecker.Result?>(null) }
 
     GlassScaffold(title = stringResource(R.string.settings), onBack = onBack, bottomBar = bottomBar) { padding ->
         Column(
@@ -211,6 +218,32 @@ fun SettingsScreen(
                 }
             }
 
+            // 关于 / 检查更新
+            InsetGroupedSection(header = stringResource(R.string.settings_about_section)) {
+                IOSRow(
+                    title = stringResource(R.string.settings_version),
+                    subtitle = vm.appVersion,
+                    icon = Icons.Filled.Info,
+                    iconColor = IOSColors.Blue,
+                )
+                HairlineDivider(startInset = 16.dp)
+                IOSRow(
+                    title = stringResource(R.string.check_update),
+                    subtitle = if (updateChecking) stringResource(R.string.update_checking) else null,
+                    icon = Icons.Filled.SystemUpdate,
+                    iconColor = IOSColors.Green,
+                    onClick = {
+                        if (!updateChecking) vm.checkUpdate { result ->
+                            when {
+                                result == null -> toast(context, context.getString(R.string.update_failed))
+                                result.hasUpdate -> pendingUpdate = result
+                                else -> toast(context, context.getString(R.string.update_latest))
+                            }
+                        }
+                    },
+                )
+            }
+
             Text(
                 stringResource(R.string.settings_about),
                 style = MaterialTheme.typography.bodySmall,
@@ -248,6 +281,31 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showImport = false }) { Text(stringResource(R.string.cancel)) }
+            },
+        )
+    }
+
+    pendingUpdate?.let { update ->
+        AlertDialog(
+            onDismissRequest = { pendingUpdate = null },
+            title = { Text(stringResource(R.string.update_available)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.update_available_msg,
+                        update.latestVersion,
+                        update.currentVersion,
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(update.downloadUrl)))
+                    pendingUpdate = null
+                }) { Text(stringResource(R.string.update_download)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingUpdate = null }) { Text(stringResource(R.string.update_later)) }
             },
         )
     }

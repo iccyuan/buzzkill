@@ -171,6 +171,18 @@
     <string name="lang_zh">中文</string>
     <string name="settings_about">BuzzKill · clean-room notification automation</string>
 
+    <!-- About / updates -->
+    <string name="settings_about_section">About</string>
+    <string name="settings_version">Version</string>
+    <string name="check_update">Check for updates</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_available">New version available</string>
+    <string name="update_available_msg">A newer version %1$s is available (you have %2$s).</string>
+    <string name="update_download">Download</string>
+    <string name="update_later">Later</string>
+    <string name="update_latest">You\'re on the latest version</string>
+    <string name="update_failed">Update check failed (offline?)</string>
+
     <!-- Enum: notification field -->
     <string name="field_title">Title</string>
     <string name="field_text">Text</string>
