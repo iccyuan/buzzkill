@@ -1,10 +1,13 @@
 package com.iccyuan.hush.service
 
 import android.annotation.SuppressLint
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.PowerManager
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import com.iccyuan.hush.R
 import com.iccyuan.hush.data.model.HttpMethod
 import com.iccyuan.hush.engine.SideEffect
 import com.iccyuan.hush.engine.VariableStore
@@ -31,6 +34,7 @@ class SideEffectExecutor(
                 is SideEffect.ReadAloud -> tts.speak(effect.text)
                 is SideEffect.WakeScreen -> wakeScreen(effect.durationMs)
                 is SideEffect.Toast -> showToast(effect.text)
+                is SideEffect.Notify -> postReminder(effect.text)
                 is SideEffect.RunTasker -> runTasker(effect.taskName)
                 is SideEffect.Webhook -> fireWebhook(effect.url, effect.method, effect.body)
                 is SideEffect.MuteApp ->
@@ -56,6 +60,21 @@ class SideEffectExecutor(
         )
         runCatching { lock.acquire(durationMs.coerceIn(500, 30_000)) }
             .onFailure { Logger.w("wakeScreen failed", it) }
+    }
+
+    /** 「发送提醒通知」动作：以渲染后的文本发布一条新通知（自带渠道，互不覆盖）。 */
+    private fun postReminder(text: String) {
+        if (text.isBlank()) return
+        val nm = context.getSystemService(NotificationManager::class.java) ?: return
+        val notification = NotificationCompat.Builder(context, ChannelManager.REMINDER_CHANNEL)
+            .setSmallIcon(R.drawable.ic_stat_hush)
+            .setContentTitle(context.getString(R.string.reminder_title))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+        runCatching { nm.notify(REMINDER_ID_BASE + (text.hashCode() and 0xffff), notification) }
     }
 
     private fun showToast(text: String) {
@@ -105,6 +124,7 @@ class SideEffectExecutor(
 
     private companion object {
         const val TASKER_PACKAGE = "net.dinglisch.android.taskerm"
+        const val REMINDER_ID_BASE = 8000
         const val WEBHOOK_TIMEOUT_MS = 8000
     }
 }

@@ -25,6 +25,7 @@ class ChannelManager(private val context: Context) {
         const val DEFAULT_REPOST = "hush_repost_default"
         const val DIGEST_CHANNEL = "hush_digest"
         const val KEEPALIVE_CHANNEL = "hush_running"
+        const val REMINDER_CHANNEL = "hush_reminder"
     }
 
     fun ensureBaseChannels() {
@@ -52,6 +53,14 @@ class ChannelManager(private val context: Context) {
             setShowBadge(false)
         }
         nm.createNotificationChannel(keepAlive)
+
+        // 「发送提醒通知」动作使用的渠道：默认重要性，可在通知栏正常展示。
+        val reminder = NotificationChannel(
+            REMINDER_CHANNEL,
+            context.getString(R.string.channel_reminder),
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply { description = context.getString(R.string.channel_reminder_desc) }
+        nm.createNotificationChannel(reminder)
     }
 
     /** 返回与所请求的提醒覆盖项相匹配的通知渠道 id。 */

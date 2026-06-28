@@ -48,6 +48,7 @@ sealed class SideEffect {
     data class ReadAloud(val text: String) : SideEffect()
     data class WakeScreen(val durationMs: Long) : SideEffect()
     data class Toast(val text: String) : SideEffect()
+    data class Notify(val text: String) : SideEffect()
     data class RunTasker(val taskName: String) : SideEffect()
     data class Webhook(val url: String, val method: HttpMethod, val body: String) : SideEffect()
     data class MuteApp(val pkg: String, val ruleId: Long) : SideEffect()

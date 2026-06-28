@@ -111,6 +111,14 @@ sealed class Action {
         val template: String = "{title}",
     ) : Action()
 
+    /** 命中后额外发送一条提醒通知（内容由模板渲染）。 */
+    @Serializable
+    @SerialName("notify")
+    data class NotifyAction(
+        override val id: String,
+        val template: String = "{app}: {title}",
+    ) : Action()
+
     /** 根据渲染后的模板设置/更新一个用户变量。 */
     @Serializable
     @SerialName("setVariable")

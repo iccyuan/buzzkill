@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.HourglassBottom
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.material.icons.filled.RecordVoiceOver
@@ -130,6 +131,9 @@ object ComponentCatalog {
         CatalogEntry(R.string.cat_act_toast, R.string.cat_act_toast_desc, Icons.Filled.Sms, Green) {
             Action.ToastAction(Ids.next())
         },
+        CatalogEntry(R.string.cat_act_notify, R.string.cat_act_notify_desc, Icons.Filled.NotificationsActive, Pink) {
+            Action.NotifyAction(Ids.next())
+        },
         CatalogEntry(R.string.cat_act_setfield, R.string.cat_act_setfield_desc, Icons.Filled.Edit, Blue) {
             Action.SetFieldAction(Ids.next())
         },
@@ -178,6 +182,7 @@ object ComponentVisuals {
         is Action.ReadAloudAction -> Icons.Filled.RecordVoiceOver to Purple
         is Action.WakeScreenAction -> Icons.Filled.LightMode to Orange
         is Action.ToastAction -> Icons.Filled.Sms to Green
+        is Action.NotifyAction -> Icons.Filled.NotificationsActive to Pink
         is Action.SetVariableAction -> Icons.Filled.DataObject to Indigo
         is Action.RunTaskerAction -> Icons.Filled.Bolt to Orange
         is Action.WebhookAction -> Icons.Filled.Cloud to Blue

@@ -465,6 +465,7 @@ private fun SimResult(decision: Decision) {
 private fun effectName(effect: SideEffect): String? = when (effect) {
     is SideEffect.ReadAloud -> stringResource(R.string.cat_act_readaloud)
     is SideEffect.Toast -> stringResource(R.string.cat_act_toast)
+    is SideEffect.Notify -> stringResource(R.string.cat_act_notify)
     is SideEffect.WakeScreen -> stringResource(R.string.cat_act_wake)
     is SideEffect.AutoReply -> stringResource(R.string.cat_act_autoreply)
     is SideEffect.Webhook -> stringResource(R.string.cat_act_webhook)

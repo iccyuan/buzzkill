@@ -108,6 +108,7 @@
     <string name="reply_message">Reply message</string>
     <string name="spoken_template">Spoken template</string>
     <string name="toast_template">Toast template</string>
+    <string name="notify_template">Reminder template</string>
     <string name="variable_name">Variable name</string>
     <string name="value_template">Value template</string>
     <string name="tasker_task">Tasker task name</string>
@@ -279,6 +280,8 @@
     <string name="cat_act_wake_desc">Briefly turn on the screen</string>
     <string name="cat_act_toast">Show toast</string>
     <string name="cat_act_toast_desc">Pop a short on-screen message</string>
+    <string name="cat_act_notify">Send a reminder</string>
+    <string name="cat_act_notify_desc">Post a new notification when the rule fires</string>
     <string name="cat_act_setvar">Set variable</string>
     <string name="cat_act_setvar_desc">Store a value for later templates</string>
     <string name="cat_act_tasker">Run Tasker task</string>
@@ -327,6 +330,7 @@
     <string name="sum_act_readaloud">Read aloud \"%s\"</string>
     <string name="sum_act_wake">Wake screen for %dms</string>
     <string name="sum_act_toast">Toast \"%s\"</string>
+    <string name="sum_act_notify">Send reminder \"%s\"</string>
     <string name="sum_act_setvar">Set $%1$s = \"%2$s\"</string>
     <string name="sum_act_tasker">Run Tasker task \"%s\"</string>
     <string name="sum_act_webhook">%1$s %2$s</string>
@@ -359,6 +363,9 @@
     <string name="channel_modified">Modified (%s)</string>
     <string name="channel_digest">Digests</string>
     <string name="channel_digest_desc">Bundled notification summaries</string>
+    <string name="channel_reminder">Reminders</string>
+    <string name="channel_reminder_desc">Notifications posted by the "Send a reminder" action</string>
+    <string name="reminder_title">Reminder</string>
     <string name="channel_keepalive">Running</string>
     <string name="channel_keepalive_desc">Keeps the listener alive in the background; tap the actions to set today as rest/work</string>
     <string name="keepalive_today_auto">Today: automatic (holiday / workday)</string>

@@ -160,6 +160,12 @@ private fun ActionFields(action: Action, onChange: (Action) -> Unit) {
             }
             TemplateHint()
         }
+        is Action.NotifyAction -> Column {
+            LabeledTextField(stringResource(R.string.notify_template), a.template, singleLine = false) {
+                onChange(a.copy(template = it))
+            }
+            TemplateHint()
+        }
         is Action.SetVariableAction -> Column {
             val nameError = if (a.name.isBlank() || a.name.any { it.isWhitespace() })
                 stringResource(R.string.err_invalid_var_name) else null
@@ -233,6 +239,7 @@ private fun actionTitle(action: Action): String = stringResource(
         is Action.ReadAloudAction -> R.string.cat_act_readaloud
         is Action.WakeScreenAction -> R.string.cat_act_wake
         is Action.ToastAction -> R.string.cat_act_toast
+        is Action.NotifyAction -> R.string.cat_act_notify
         is Action.SetVariableAction -> R.string.cat_act_setvar
         is Action.RunTaskerAction -> R.string.cat_act_tasker
         is Action.WebhookAction -> R.string.cat_act_webhook

@@ -222,6 +222,10 @@ class RuleEngine {
                 decision.sideEffects.add(
                     SideEffect.Toast(TemplateEngine.render(action.template, ctx))
                 )
+            is Action.NotifyAction ->
+                decision.sideEffects.add(
+                    SideEffect.Notify(TemplateEngine.render(action.template, ctx))
+                )
             is Action.SetVariableAction ->
                 VariableStore.setVariable(action.name, TemplateEngine.render(action.valueTemplate, ctx))
             is Action.RunTaskerAction ->
