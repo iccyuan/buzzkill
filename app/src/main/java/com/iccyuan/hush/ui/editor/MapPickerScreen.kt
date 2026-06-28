@@ -61,6 +61,9 @@ fun LocationMap(
     val context = LocalContext.current
     // 是否已经把镜头移到过当前位置（仅首次自动居中，避免反复抢镜头）。
     val centeredOnce = remember { booleanArrayOf(false) }
+    // 用户是否已手动点图选点；以及打开时是否本就没有选点（新建条件）。
+    val userPicked = remember { booleanArrayOf(false) }
+    val initialUnset = remember { lat == 0.0 && lng == 0.0 }
 
     // 直接经 Activity 申请定位权限——Compose 的 rememberLauncherForActivityResult 在 Dialog
     // 子组合里取不到 ActivityResultRegistryOwner 会崩溃。
@@ -114,14 +117,16 @@ fun LocationMap(
             centeredOnce[0] = true
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 16f))
         }
-        // 首次定位成功时，若用户尚未选点，自动把镜头移到当前位置。
+        // 首次定位成功时，若用户尚未选点，自动把镜头移到当前位置，并默认采用该位置——
+        // 用户没在地图上选点时，就用定位到的当前位置作为围栏中心。
         map.setOnMyLocationChangeListener { loc ->
             if (!centeredOnce[0] && loc != null && (loc.latitude != 0.0 || loc.longitude != 0.0)) {
                 centeredOnce[0] = true
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(loc.latitude, loc.longitude), 16f))
+                if (initialUnset && !userPicked[0]) onPick(loc.latitude, loc.longitude)
             }
         }
-        map.setOnMapClickListener { p -> onPick(p.latitude, p.longitude) }
+        map.setOnMapClickListener { p -> userPicked[0] = true; onPick(p.latitude, p.longitude) }
     }
 
     // 选点/半径变化时重绘标记 + 半径圈。
