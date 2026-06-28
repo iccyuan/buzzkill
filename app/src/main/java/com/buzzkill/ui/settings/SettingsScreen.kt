@@ -98,6 +98,37 @@ fun SettingsScreen(
         ) {
             Spacer(Modifier.height(4.dp))
 
+            // 通知访问权限——最重要：没有它整个应用都无法工作，因此置顶。
+            InsetGroupedSection(header = stringResource(R.string.settings_access)) {
+                val (statusLabel, statusColor) = when {
+                    !accessGranted -> stringResource(R.string.status_no_access) to IOSColors.Gray
+                    !listenerConnected -> stringResource(R.string.status_disconnected) to IOSColors.Red
+                    else -> stringResource(R.string.status_connected) to IOSColors.Green
+                }
+                IOSRow(
+                    title = stringResource(R.string.settings_access),
+                    subtitle = stringResource(
+                        when {
+                            !accessGranted -> R.string.access_not_granted
+                            !listenerConnected -> R.string.access_disconnected
+                            else -> R.string.access_granted
+                        }
+                    ),
+                )
+                HairlineDivider(startInset = 16.dp)
+                IOSRow(
+                    title = stringResource(R.string.settings_connection),
+                    trailing = { ConnectionStatus(statusLabel, statusColor) },
+                )
+                HairlineDivider(startInset = 16.dp)
+                Column(Modifier.padding(16.dp)) {
+                    IOSTintedButton(
+                        text = stringResource(R.string.open_access_settings),
+                        onClick = { context.startActivity(NotificationAccess.settingsIntent()) },
+                    )
+                }
+            }
+
             // 通用
             InsetGroupedSection(header = stringResource(R.string.settings_general)) {
                 IOSRow(
@@ -213,37 +244,6 @@ fun SettingsScreen(
                                 )
                             }
                         },
-                    )
-                }
-            }
-
-            // 通知访问权限
-            InsetGroupedSection(header = stringResource(R.string.settings_access)) {
-                val (statusLabel, statusColor) = when {
-                    !accessGranted -> stringResource(R.string.status_no_access) to IOSColors.Gray
-                    !listenerConnected -> stringResource(R.string.status_disconnected) to IOSColors.Red
-                    else -> stringResource(R.string.status_connected) to IOSColors.Green
-                }
-                IOSRow(
-                    title = stringResource(R.string.settings_access),
-                    subtitle = stringResource(
-                        when {
-                            !accessGranted -> R.string.access_not_granted
-                            !listenerConnected -> R.string.access_disconnected
-                            else -> R.string.access_granted
-                        }
-                    ),
-                )
-                HairlineDivider(startInset = 16.dp)
-                IOSRow(
-                    title = stringResource(R.string.settings_connection),
-                    trailing = { ConnectionStatus(statusLabel, statusColor) },
-                )
-                HairlineDivider(startInset = 16.dp)
-                Column(Modifier.padding(16.dp)) {
-                    IOSTintedButton(
-                        text = stringResource(R.string.open_access_settings),
-                        onClick = { context.startActivity(NotificationAccess.settingsIntent()) },
                     )
                 }
             }
