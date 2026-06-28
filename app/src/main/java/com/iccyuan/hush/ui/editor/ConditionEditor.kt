@@ -112,23 +112,29 @@ private fun LocationConditionFields(
     c: Condition.LocationCondition,
     onChange: (Condition.LocationCondition) -> Unit,
 ) {
-    var showPicker by remember { mutableStateOf(false) }
     Column {
-        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-            Text(
-                c.placeName.ifBlank { stringResource(R.string.location_unset) },
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            androidx.compose.material3.TextButton(onClick = { showPicker = true }) {
-                Text(stringResource(R.string.location_pick))
-            }
-        }
-        if (c.latitude != 0.0 || c.longitude != 0.0) {
-            Text(
-                "%.5f, %.5f".format(c.latitude, c.longitude),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Text(
+            if (c.latitude != 0.0 || c.longitude != 0.0)
+                "%.5f, %.5f".format(c.latitude, c.longitude)
+            else stringResource(R.string.location_pick_hint),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(6.dp))
+        // 内嵌地图：点图落点，右下角定位按钮回到当前位置。
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(240.dp)
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp)),
+        ) {
+            LocationMap(
+                lat = c.latitude,
+                lng = c.longitude,
+                radiusMeters = c.radiusMeters,
+                onPick = { lat, lng ->
+                    onChange(c.copy(latitude = lat, longitude = lng, placeName = "%.5f, %.5f".format(lat, lng)))
+                },
             )
         }
         Spacer(Modifier.height(8.dp))
@@ -137,23 +143,6 @@ private fun LocationConditionFields(
         }
         SwitchRow(stringResource(R.string.location_must_inside), c.mustBeInside) {
             onChange(c.copy(mustBeInside = it))
-        }
-    }
-    if (showPicker) {
-        androidx.compose.ui.window.Dialog(
-            onDismissRequest = { showPicker = false },
-            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
-        ) {
-            MapPickerScreen(
-                initialLat = c.latitude,
-                initialLng = c.longitude,
-                radiusMeters = c.radiusMeters,
-                onCancel = { showPicker = false },
-                onConfirm = { lat, lng, name ->
-                    onChange(c.copy(latitude = lat, longitude = lng, placeName = name))
-                    showPicker = false
-                },
-            )
         }
     }
 }

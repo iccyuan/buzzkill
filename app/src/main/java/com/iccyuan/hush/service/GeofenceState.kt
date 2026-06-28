@@ -21,4 +21,9 @@ object GeofenceState {
     fun reset() {
         inside = emptySet()
     }
+
+    /** 只保留仍在监控的围栏的「在内」状态，丢弃已注销围栏的残留缓存。 */
+    fun retainOnly(keys: Set<String>) {
+        inside = inside intersect keys
+    }
 }

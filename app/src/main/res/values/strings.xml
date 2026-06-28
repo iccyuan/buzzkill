@@ -261,6 +261,7 @@
     <string name="location_unset">No location set</string>
     <string name="location_pick">Pick on map</string>
     <string name="location_pick_title">Tap to choose a spot</string>
+    <string name="location_pick_hint">Tap the map to drop a pin</string>
     <string name="location_radius_m">Radius (meters)</string>
     <string name="location_must_inside">Inside the area (off = outside)</string>
     <string name="cat_cond_battery">Battery level</string>

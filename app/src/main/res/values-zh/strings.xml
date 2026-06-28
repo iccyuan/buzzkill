@@ -261,6 +261,7 @@
     <string name="location_unset">未选择位置</string>
     <string name="location_pick">在地图上选</string>
     <string name="location_pick_title">点地图选择位置</string>
+    <string name="location_pick_hint">点地图落点选择位置</string>
     <string name="location_radius_m">半径（米）</string>
     <string name="location_must_inside">在范围内（关闭则为范围外）</string>
     <string name="cat_cond_battery">电量</string>
