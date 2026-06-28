@@ -34,6 +34,7 @@
     <string name="detail_package">Package</string>
     <string name="detail_time">Time</string>
     <string name="detail_rules">Matched rules</string>
+    <string name="rule_deleted">(deleted rule)</string>
     <string name="stat_peak_hour">Peak time</string>
     <string name="stat_busiest_day">Busiest day</string>
     <string name="stat_total">%d notifications</string>
@@ -237,6 +238,9 @@
     <string name="cat_trig_ongoing_desc">Match ongoing (music/downloads) or dismissible</string>
     <string name="cat_trig_reply">Has reply action</string>
     <string name="cat_trig_reply_desc">Match chat notifications with inline reply</string>
+    <string name="cat_trig_promo">Anti-spam (promo)</string>
+    <string name="cat_trig_promo_desc">Match notifications the system tags as marketing/promo</string>
+    <string name="promo_trigger_desc">Matches notifications whose category is marketing/promo (CATEGORY_PROMO). Note: only apps that correctly tag promos are caught — keyword/heuristic detection can be added later.</string>
 
     <!-- Catalog: conditions -->
     <string name="cat_cond_time">Time of day</string>
@@ -298,6 +302,7 @@
     <string name="sum_ongoing_no">Notification is dismissible</string>
     <string name="sum_reply_yes">Has an inline reply action</string>
     <string name="sum_reply_no">Has no reply action</string>
+    <string name="sum_promo">Marketing / promo notification</string>
     <string name="sum_every_day">every day</string>
     <string name="sum_time">%1$s–%2$s (%3$s)</string>
     <string name="sum_charging">While charging</string>

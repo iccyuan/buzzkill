@@ -122,6 +122,9 @@ class RuleEngine {
         }
         is Trigger.OngoingTrigger -> ctx.isOngoing == trigger.mustBeOngoing
         is Trigger.HasReplyTrigger -> ctx.hasReply == trigger.mustHaveReply
+        // 防骚扰：仅按通知类别识别营销/推广（Notification.CATEGORY_PROMO == "promo"）。
+        is Trigger.PromoTrigger ->
+            ctx.field(NotificationField.CATEGORY).equals(PROMO_CATEGORY, ignoreCase = true)
     }
 
     private fun conditionsHold(rule: Rule, ctx: MatchContext): Boolean =
@@ -282,6 +285,9 @@ class RuleEngine {
     }
 
     private companion object {
+        /** 营销/推广类别（对应 Notification.CATEGORY_PROMO，此处保持引擎与 Android 无关）。 */
+        const val PROMO_CATEGORY = "promo"
+
         /** 按规则开关使用的默认弹幕渲染模板。 */
         const val DANMAKU_TEMPLATE = "{app}: {title} {text}"
         const val DANMAKU_DURATION_MS = 7000L

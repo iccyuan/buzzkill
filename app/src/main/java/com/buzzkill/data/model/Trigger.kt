@@ -41,4 +41,14 @@ sealed class Trigger {
         override val id: String,
         val mustHaveReply: Boolean = true,
     ) : Trigger()
+
+    /**
+     * 防骚扰：匹配系统标记为「营销 / 推广」类别（Notification.CATEGORY_PROMO）的通知。
+     * 纯本地按类别识别,无需配置。
+     */
+    @Serializable
+    @SerialName("promo")
+    data class PromoTrigger(
+        override val id: String,
+    ) : Trigger()
 }

@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.BatteryStd
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.DataObject
@@ -66,6 +67,9 @@ object ComponentCatalog {
         },
         CatalogEntry(R.string.cat_trig_reply, R.string.cat_trig_reply_desc, Icons.AutoMirrored.Filled.Reply, Teal) {
             Trigger.HasReplyTrigger(Ids.next())
+        },
+        CatalogEntry(R.string.cat_trig_promo, R.string.cat_trig_promo_desc, Icons.Filled.Campaign, Orange) {
+            Trigger.PromoTrigger(Ids.next())
         },
     )
 
@@ -150,6 +154,7 @@ object ComponentVisuals {
         is Trigger.TextTrigger -> Icons.Filled.Search to Blue
         is Trigger.OngoingTrigger -> Icons.Filled.MusicNote to Indigo
         is Trigger.HasReplyTrigger -> Icons.AutoMirrored.Filled.Reply to Teal
+        is Trigger.PromoTrigger -> Icons.Filled.Campaign to Orange
     }
 
     fun of(c: Condition): Pair<ImageVector, Color> = when (c) {

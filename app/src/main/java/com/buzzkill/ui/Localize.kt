@@ -98,6 +98,7 @@ object Localize {
             stringResource(if (t.mustBeOngoing) R.string.sum_ongoing_yes else R.string.sum_ongoing_no)
         is Trigger.HasReplyTrigger ->
             stringResource(if (t.mustHaveReply) R.string.sum_reply_yes else R.string.sum_reply_no)
+        is Trigger.PromoTrigger -> stringResource(R.string.sum_promo)
     }
 
     @Composable

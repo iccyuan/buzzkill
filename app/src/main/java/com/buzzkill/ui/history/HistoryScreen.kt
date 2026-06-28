@@ -62,6 +62,7 @@ fun HistoryScreen(
     vm: HistoryViewModel = viewModel(),
 ) {
     val logs by vm.logs.collectAsStateWithLifecycle()
+    val ruleNames by vm.ruleNames.collectAsStateWithLifecycle()
     var grouping by remember { mutableStateOf(Grouping.DAY) }
     var selectedApp by remember { mutableStateOf<String?>(null) }
 
@@ -130,6 +131,7 @@ fun HistoryScreen(
                             if (i > 0) HairlineDivider(startInset = 16.dp)
                             SwipeableLogRow(
                                 log = log,
+                                ruleNames = ruleNames,
                                 onDelete = { vm.delete(log) },
                                 onCreateRule = onCreateRule?.let { cb ->
                                     { vm.createRuleFrom(log) { id -> cb(id) } }
@@ -248,6 +250,7 @@ private fun Chip(label: String, active: Boolean, onClick: () -> Unit) {
 @Composable
 private fun SwipeableLogRow(
     log: NotificationLog,
+    ruleNames: Map<Long, String>,
     onDelete: () -> Unit,
     onCreateRule: (() -> Unit)? = null,
 ) {
@@ -299,13 +302,13 @@ private fun SwipeableLogRow(
                     },
                 ),
         ) {
-            LogRow(log, onCreateRule)
+            LogRow(log, ruleNames, onCreateRule)
         }
     }
 }
 
 @Composable
-private fun LogRow(log: NotificationLog, onCreateRule: (() -> Unit)? = null) {
+private fun LogRow(log: NotificationLog, ruleNames: Map<Long, String>, onCreateRule: (() -> Unit)? = null) {
     // 以 id 作为 key，这样当列表发生变化（例如删除后）时，展开状态能跟随其对应的日志。
     var expanded by remember(log.id) { mutableStateOf(false) }
     Column(
@@ -353,8 +356,14 @@ private fun LogRow(log: NotificationLog, onCreateRule: (() -> Unit)? = null) {
                 DetailLine(stringResource(R.string.detail_package), log.packageName)
                 DetailLine(stringResource(R.string.detail_time), fullTimeOf(log.time))
                 if (log.matched) {
-                    val count = log.firedRuleIds.split(",").count { it.isNotBlank() }
-                    DetailLine(stringResource(R.string.detail_rules), count.toString())
+                    val ids = log.firedRuleIds.split(",").mapNotNull { it.trim().toLongOrNull() }
+                    val names = ids.mapNotNull { ruleNames[it] }
+                    val display = when {
+                        names.isNotEmpty() -> names.joinToString("、")
+                        ids.isNotEmpty() -> stringResource(R.string.rule_deleted)
+                        else -> null
+                    }
+                    if (display != null) DetailLine(stringResource(R.string.detail_rules), display)
                 }
                 if (onCreateRule != null) {
                     TextButton(

@@ -13,6 +13,7 @@ import com.buzzkill.data.model.Trigger
 import com.buzzkill.ui.Ids
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -22,6 +23,11 @@ class HistoryViewModel(app: Application) : AndroidViewModel(app) {
 
     val logs: StateFlow<List<NotificationLog>> = repo.observeRecent()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** 规则 id → 名称，用于在历史里展示「被哪条规则命中」。 */
+    val ruleNames: StateFlow<Map<Long, String>> = rules.observeAll()
+        .map { list -> list.associate { it.id to it.name } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     fun clear() = viewModelScope.launch { repo.clear() }
     fun delete(log: NotificationLog) = viewModelScope.launch { repo.deleteById(log.id) }
