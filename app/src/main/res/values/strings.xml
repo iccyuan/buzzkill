@@ -191,6 +191,7 @@
     <string name="update_later">Later</string>
     <string name="update_latest">You\'re on the latest version</string>
     <string name="update_failed">Update check failed (offline?)</string>
+    <string name="update_download_fallback">No app to open the link. Download URL copied to clipboard.</string>
 
     <!-- Enum: notification field -->
     <string name="field_title">Title</string>

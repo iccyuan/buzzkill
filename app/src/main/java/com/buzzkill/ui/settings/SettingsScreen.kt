@@ -349,7 +349,19 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(update.downloadUrl)))
+                    // 用浏览器打开下载链接（APK 直链会由浏览器下载）。直接 ACTION_VIEW 在部分机型
+                    // 上会解析到无法处理 .apk 直链的组件、随即闪回桌面，甚至无 handler 时抛
+                    // ActivityNotFoundException 崩溃；这里强制弹出浏览器选择器，并整体 runCatching，
+                    // 失败则回退到复制链接 + 提示。
+                    val view = Intent(Intent.ACTION_VIEW, Uri.parse(update.downloadUrl))
+                        .addCategory(Intent.CATEGORY_BROWSABLE)
+                    val chooser = Intent.createChooser(view, null)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    val opened = runCatching { context.startActivity(chooser) }.isSuccess
+                    if (!opened) {
+                        copyToClipboard(context, update.downloadUrl)
+                        toast(context, context.getString(R.string.update_download_fallback))
+                    }
                     pendingUpdate = null
                 }) { Text(stringResource(R.string.update_download)) }
             },
