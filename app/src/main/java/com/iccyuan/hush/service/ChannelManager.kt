@@ -1,4 +1,5 @@
 package com.iccyuan.hush.service
+import com.iccyuan.hush.R
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -29,25 +30,25 @@ class ChannelManager(private val context: Context) {
     fun ensureBaseChannels() {
         val activity = NotificationChannel(
             HISTORY_CHANNEL,
-            context.getString(com.iccyuan.hush.R.string.channel_activity),
+            context.getString(R.string.channel_activity),
             NotificationManager.IMPORTANCE_LOW,
-        ).apply { description = context.getString(com.iccyuan.hush.R.string.channel_activity_desc) }
+        ).apply { description = context.getString(R.string.channel_activity_desc) }
         nm.createNotificationChannel(activity)
 
         val digest = NotificationChannel(
             DIGEST_CHANNEL,
-            context.getString(com.iccyuan.hush.R.string.channel_digest),
+            context.getString(R.string.channel_digest),
             NotificationManager.IMPORTANCE_DEFAULT,
-        ).apply { description = context.getString(com.iccyuan.hush.R.string.channel_digest_desc) }
+        ).apply { description = context.getString(R.string.channel_digest_desc) }
         nm.createNotificationChannel(digest)
 
         // 保活前台服务的常驻通知渠道：低重要性（静音、不弹横幅，但在通知栏可见可展开操作），无角标。
         val keepAlive = NotificationChannel(
             KEEPALIVE_CHANNEL,
-            context.getString(com.iccyuan.hush.R.string.channel_keepalive),
+            context.getString(R.string.channel_keepalive),
             NotificationManager.IMPORTANCE_LOW,
         ).apply {
-            description = context.getString(com.iccyuan.hush.R.string.channel_keepalive_desc)
+            description = context.getString(R.string.channel_keepalive_desc)
             setShowBadge(false)
         }
         nm.createNotificationChannel(keepAlive)
@@ -113,7 +114,7 @@ class ChannelManager(private val context: Context) {
     }
 
     private fun channelName(importance: Importance) =
-        context.getString(com.iccyuan.hush.R.string.channel_modified, importance.name.lowercase())
+        context.getString(R.string.channel_modified, importance.name.lowercase())
 
     private fun Importance.toPlatform(): Int = when (this) {
         Importance.MIN -> NotificationManager.IMPORTANCE_MIN

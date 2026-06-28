@@ -1,4 +1,5 @@
 package com.iccyuan.hush.ui.editor
+import com.iccyuan.hush.engine.TextMatcher
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -89,7 +90,7 @@ private fun TextTriggerFields(t: Trigger.TextTrigger, onChange: (Trigger.TextTri
         )
         Spacer(Modifier.height(8.dp))
         val queryError = if (t.mode == MatchMode.REGEX) {
-            com.iccyuan.hush.engine.TextMatcher.regexError(t.query)
+            TextMatcher.regexError(t.query)
                 ?.let { stringResource(R.string.err_invalid_regex, it) }
         } else null
         LabeledTextField(stringResource(R.string.query), t.query, error = queryError) {

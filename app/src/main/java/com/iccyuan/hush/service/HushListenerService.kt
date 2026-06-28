@@ -2,13 +2,18 @@ package com.iccyuan.hush.service
 
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import com.iccyuan.hush.data.NotificationLogRepository
 import com.iccyuan.hush.data.RuleRepository
+import com.iccyuan.hush.data.RuntimeStateStore
 import com.iccyuan.hush.data.SettingsStore
+import com.iccyuan.hush.data.model.NotificationLog
 import com.iccyuan.hush.data.model.Rule
 import com.iccyuan.hush.engine.Decision
 import com.iccyuan.hush.engine.MatchContext
 import com.iccyuan.hush.engine.RuleEngine
 import com.iccyuan.hush.engine.SideEffect
+import com.iccyuan.hush.engine.TemplateEngine
+import com.iccyuan.hush.engine.VariableStore
 import com.iccyuan.hush.util.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +35,7 @@ class HushListenerService : NotificationListenerService() {
     private val engine = RuleEngine()
 
     private lateinit var repository: RuleRepository
-    private lateinit var logRepository: com.iccyuan.hush.data.NotificationLogRepository
+    private lateinit var logRepository: NotificationLogRepository
     private lateinit var settings: SettingsStore
     private lateinit var channels: ChannelManager
     private lateinit var modifier: NotificationModifier
@@ -46,7 +51,7 @@ class HushListenerService : NotificationListenerService() {
     override fun onCreate() {
         super.onCreate()
         repository = RuleRepository.get(this)
-        logRepository = com.iccyuan.hush.data.NotificationLogRepository.get(this)
+        logRepository = NotificationLogRepository.get(this)
         settings = SettingsStore.get(this)
         channels = ChannelManager(this)
         modifier = NotificationModifier(this, channels)
@@ -54,7 +59,7 @@ class HushListenerService : NotificationListenerService() {
         sideEffects = SideEffectExecutor(this, scope, tts)
         channels.ensureBaseChannels()
         // 恢复并持久化运行时状态（冷却 / 静音 / 变量），使其跨进程重启依然有效。
-        com.iccyuan.hush.data.RuntimeStateStore.init(this)
+        RuntimeStateStore.init(this)
 
         scope.launch {
             repository.observeAll().collectLatest {
@@ -66,7 +71,7 @@ class HushListenerService : NotificationListenerService() {
             settings.masterEnabled.collectLatest {
                 masterEnabled = it
                 // 关闭总开关同时解除所有应用静音。
-                if (!it) com.iccyuan.hush.engine.VariableStore.unmuteAll()
+                if (!it) VariableStore.unmuteAll()
             }
         }
         scope.launch { settings.logActivity.collectLatest { logActivity = it } }
@@ -141,7 +146,7 @@ class HushListenerService : NotificationListenerService() {
         if (immersiveDanmaku && !decision.discard && isFullscreen() && DanmakuController.canShow(this)) {
             decision.sideEffects.add(
                 SideEffect.Danmaku(
-                    com.iccyuan.hush.engine.TemplateEngine.render("{app}: {title} {text}", ctx),
+                    TemplateEngine.render("{app}: {title} {text}", ctx),
                     7000L,
                 )
             )
@@ -166,15 +171,15 @@ class HushListenerService : NotificationListenerService() {
         val title = extras.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString().orEmpty()
         val text = extras.getCharSequence(android.app.Notification.EXTRA_TEXT)?.toString().orEmpty()
         val outcome = when {
-            decision.discard -> com.iccyuan.hush.data.model.NotificationLog.OUTCOME_DISCARDED
-            decision.needsRepost -> com.iccyuan.hush.data.model.NotificationLog.OUTCOME_MODIFIED
-            decision.snoozeMinutes != null -> com.iccyuan.hush.data.model.NotificationLog.OUTCOME_SNOOZED
-            decision.dismiss -> com.iccyuan.hush.data.model.NotificationLog.OUTCOME_DISMISSED
-            else -> com.iccyuan.hush.data.model.NotificationLog.OUTCOME_NONE
+            decision.discard -> NotificationLog.OUTCOME_DISCARDED
+            decision.needsRepost -> NotificationLog.OUTCOME_MODIFIED
+            decision.snoozeMinutes != null -> NotificationLog.OUTCOME_SNOOZED
+            decision.dismiss -> NotificationLog.OUTCOME_DISMISSED
+            else -> NotificationLog.OUTCOME_NONE
         }
         runCatching {
             logRepository.add(
-                com.iccyuan.hush.data.model.NotificationLog(
+                NotificationLog(
                     time = sbn.postTime.takeIf { it > 0 } ?: System.currentTimeMillis(),
                     packageName = sbn.packageName,
                     appName = appName,

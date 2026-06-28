@@ -1,4 +1,5 @@
 package com.iccyuan.hush.ui.nav
+import com.iccyuan.hush.ui.insights.InsightsScreen
 
 import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
 import androidx.compose.animation.core.tween
@@ -47,7 +48,7 @@ fun HushNavHost() {
             )
         }
         composable(Routes.INSIGHTS) {
-            com.iccyuan.hush.ui.insights.InsightsScreen(onBack = { nav.popBackStack() })
+            InsightsScreen(onBack = { nav.popBackStack() })
         }
     }
 }

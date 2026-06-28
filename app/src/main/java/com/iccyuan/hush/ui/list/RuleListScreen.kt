@@ -1,6 +1,8 @@
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package com.iccyuan.hush.ui.list
+import com.iccyuan.hush.data.HolidayProvider
+import com.iccyuan.hush.ui.components.IOSFilledButton
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -175,7 +177,7 @@ private fun TodayOverrideCard() {
     var override by remember { mutableStateOf<String?>(null) }
     androidx.compose.runtime.LaunchedEffect(Unit) {
         override = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            com.iccyuan.hush.data.HolidayProvider.todayOverride(context)
+            HolidayProvider.todayOverride(context)
         }
     }
     InsetGroupedSection {
@@ -187,24 +189,24 @@ private fun TodayOverrideCard() {
                 label = stringResource(R.string.today_rest),
                 icon = Icons.Outlined.Weekend,
                 color = IOSColors.Red,
-                active = override == com.iccyuan.hush.data.HolidayProvider.OVERRIDE_REST,
+                active = override == HolidayProvider.OVERRIDE_REST,
                 modifier = Modifier.weight(1f),
             ) {
-                val next = if (override == com.iccyuan.hush.data.HolidayProvider.OVERRIDE_REST) null
-                else com.iccyuan.hush.data.HolidayProvider.OVERRIDE_REST
-                com.iccyuan.hush.data.HolidayProvider.setTodayOverride(context, next)
+                val next = if (override == HolidayProvider.OVERRIDE_REST) null
+                else HolidayProvider.OVERRIDE_REST
+                HolidayProvider.setTodayOverride(context, next)
                 override = next
             }
             TodayButton(
                 label = stringResource(R.string.today_work),
                 icon = Icons.Outlined.WorkOutline,
                 color = IOSColors.Orange,
-                active = override == com.iccyuan.hush.data.HolidayProvider.OVERRIDE_WORK,
+                active = override == HolidayProvider.OVERRIDE_WORK,
                 modifier = Modifier.weight(1f),
             ) {
-                val next = if (override == com.iccyuan.hush.data.HolidayProvider.OVERRIDE_WORK) null
-                else com.iccyuan.hush.data.HolidayProvider.OVERRIDE_WORK
-                com.iccyuan.hush.data.HolidayProvider.setTodayOverride(context, next)
+                val next = if (override == HolidayProvider.OVERRIDE_WORK) null
+                else HolidayProvider.OVERRIDE_WORK
+                HolidayProvider.setTodayOverride(context, next)
                 override = next
             }
         }
@@ -301,7 +303,7 @@ private fun AccessBanner(onGrant: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.size(12.dp))
-            com.iccyuan.hush.ui.components.IOSFilledButton(
+            IOSFilledButton(
                 text = stringResource(R.string.grant_access),
                 onClick = onGrant,
             )

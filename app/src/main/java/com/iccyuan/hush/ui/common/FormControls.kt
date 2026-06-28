@@ -1,4 +1,5 @@
 package com.iccyuan.hush.ui.common
+import com.iccyuan.hush.ui.components.IOSSwitch
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -79,7 +80,7 @@ fun SwitchRow(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(label, modifier = Modifier.weight(1f))
-        com.iccyuan.hush.ui.components.IOSSwitch(checked = checked, onCheckedChange = onCheckedChange)
+        IOSSwitch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 

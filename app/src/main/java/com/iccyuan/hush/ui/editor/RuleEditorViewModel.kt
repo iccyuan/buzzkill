@@ -1,4 +1,5 @@
 package com.iccyuan.hush.ui.editor
+import com.iccyuan.hush.engine.VariableStore
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -85,7 +86,7 @@ class RuleEditorViewModel(app: Application) : AndroidViewModel(app) {
             repository.upsert(named)
             // 若该规则被停用，解除它设置的应用静音。
             if (!named.enabled && named.id != 0L) {
-                com.iccyuan.hush.engine.VariableStore.unmuteByRule(named.id)
+                VariableStore.unmuteByRule(named.id)
             }
             onDone()
         }
@@ -96,7 +97,7 @@ class RuleEditorViewModel(app: Application) : AndroidViewModel(app) {
             val r = _rule.value
             if (r.id != 0L) {
                 repository.delete(r)
-                com.iccyuan.hush.engine.VariableStore.unmuteByRule(r.id)
+                VariableStore.unmuteByRule(r.id)
             }
             onDone()
         }

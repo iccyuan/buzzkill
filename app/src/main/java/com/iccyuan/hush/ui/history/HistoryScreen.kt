@@ -1,6 +1,7 @@
 @file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 
 package com.iccyuan.hush.ui.history
+import com.iccyuan.hush.ui.components.IOSSegmented
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -119,7 +120,7 @@ fun HistoryScreen(
                 Spacer(Modifier.height(4.dp))
                 StatsCard(filtered)
                 Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    com.iccyuan.hush.ui.components.IOSSegmented(
+                    IOSSegmented(
                         options = listOf(Grouping.DAY, Grouping.WEEK),
                         selected = grouping,
                         label = { stringResource(if (it == Grouping.DAY) R.string.group_by_day else R.string.group_by_week) },

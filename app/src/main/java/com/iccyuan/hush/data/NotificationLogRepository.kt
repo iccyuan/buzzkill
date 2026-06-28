@@ -1,4 +1,5 @@
 package com.iccyuan.hush.data
+import com.iccyuan.hush.data.db.AppCount
 
 import android.content.Context
 import com.iccyuan.hush.data.db.AppDatabase
@@ -21,7 +22,7 @@ class NotificationLogRepository private constructor(private val dao: Notificatio
     // --- 洞察 ---
     suspend fun total(): Int = dao.count()
     suspend fun matched(): Int = dao.matchedCount()
-    suspend fun topApps(limit: Int = 8): List<com.iccyuan.hush.data.db.AppCount> = dao.topApps(limit)
+    suspend fun topApps(limit: Int = 8): List<AppCount> = dao.topApps(limit)
 
     suspend fun add(log: NotificationLog) {
         dao.insert(log)

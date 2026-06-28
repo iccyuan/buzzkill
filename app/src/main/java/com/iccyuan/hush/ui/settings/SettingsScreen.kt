@@ -1,6 +1,8 @@
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package com.iccyuan.hush.ui.settings
+import com.iccyuan.hush.service.DanmakuController
+import com.iccyuan.hush.data.ApkInstaller
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -161,7 +163,7 @@ fun SettingsScreen(
                     trailing = { IOSSwitch(immersiveDanmaku) { vm.setImmersiveDanmaku(it) } },
                 )
                 // 沉浸弹幕依赖悬浮窗权限；开启但未授权时给出授予入口。
-                if (immersiveDanmaku && !com.iccyuan.hush.service.DanmakuController.canShow(context)) {
+                if (immersiveDanmaku && !DanmakuController.canShow(context)) {
                     HairlineDivider(startInset = 16.dp)
                     IOSRow(
                         title = stringResource(R.string.grant_overlay),
@@ -169,7 +171,7 @@ fun SettingsScreen(
                         iconColor = IOSColors.Orange,
                         onClick = {
                             context.startActivity(
-                                com.iccyuan.hush.service.DanmakuController.overlaySettingsIntent(context)
+                                DanmakuController.overlaySettingsIntent(context)
                             )
                         },
                     )
@@ -350,9 +352,9 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(onClick = {
                     val url = update.downloadUrl
-                    if (com.iccyuan.hush.data.ApkInstaller.isApk(url)) {
+                    if (ApkInstaller.isApk(url)) {
                         // 内置下载：系统 DownloadManager 下到应用私有目录，完成后拉起安装器，不经浏览器。
-                        com.iccyuan.hush.data.ApkInstaller.downloadAndInstall(context, url, update.latestVersion)
+                        ApkInstaller.downloadAndInstall(context, url, update.latestVersion)
                         toast(context, context.getString(R.string.update_downloading))
                     } else {
                         // 非 APK 直链（如发布页）——回退到浏览器，并整体 runCatching 防崩溃。

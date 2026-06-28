@@ -1,4 +1,5 @@
 package com.iccyuan.hush.ui.list
+import com.iccyuan.hush.engine.VariableStore
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -25,7 +26,7 @@ class RuleListViewModel(app: Application) : AndroidViewModel(app) {
     fun setEnabled(rule: Rule, enabled: Boolean) = viewModelScope.launch {
         repository.setEnabled(rule.id, enabled)
         // 停用规则即解除它设置的应用静音。
-        if (!enabled) com.iccyuan.hush.engine.VariableStore.unmuteByRule(rule.id)
+        if (!enabled) VariableStore.unmuteByRule(rule.id)
     }
 
     fun setMasterEnabled(enabled: Boolean) = viewModelScope.launch {
@@ -34,7 +35,7 @@ class RuleListViewModel(app: Application) : AndroidViewModel(app) {
 
     fun delete(rule: Rule) = viewModelScope.launch {
         repository.delete(rule)
-        com.iccyuan.hush.engine.VariableStore.unmuteByRule(rule.id)
+        VariableStore.unmuteByRule(rule.id)
     }
 
     fun duplicate(rule: Rule) = viewModelScope.launch {

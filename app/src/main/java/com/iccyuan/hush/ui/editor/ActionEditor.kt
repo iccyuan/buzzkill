@@ -1,4 +1,5 @@
 package com.iccyuan.hush.ui.editor
+import com.iccyuan.hush.engine.TextMatcher
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -79,7 +80,7 @@ private fun ActionFields(action: Action, onChange: (Action) -> Unit) {
             fieldDropdown(a.field) { onChange(a.copy(field = it)) }
             Spacer(Modifier.height(6.dp))
             val patternError = if (a.isRegex) {
-                com.iccyuan.hush.engine.TextMatcher.regexError(a.pattern)
+                TextMatcher.regexError(a.pattern)
                     ?.let { stringResource(R.string.err_invalid_regex, it) }
             } else null
             LabeledTextField(stringResource(R.string.find), a.pattern, error = patternError) {

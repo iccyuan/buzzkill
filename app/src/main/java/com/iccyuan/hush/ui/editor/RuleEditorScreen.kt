@@ -4,6 +4,14 @@
 )
 
 package com.iccyuan.hush.ui.editor
+import com.iccyuan.hush.data.AppInfo
+import com.iccyuan.hush.data.InstalledApps
+import com.iccyuan.hush.data.NotificationLogRepository
+import com.iccyuan.hush.data.model.NotificationLog
+import com.iccyuan.hush.data.model.Rule
+import com.iccyuan.hush.engine.Decision
+import com.iccyuan.hush.engine.RuleEngine
+import com.iccyuan.hush.service.DanmakuController
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -228,14 +236,14 @@ fun RuleEditorScreen(
                     )
                     // 当弹幕已开启但缺少悬浮窗权限时，提供授予权限的入口。
                     val ctx = androidx.compose.ui.platform.LocalContext.current
-                    if (rule.showDanmaku && !com.iccyuan.hush.service.DanmakuController.canShow(ctx)) {
+                    if (rule.showDanmaku && !DanmakuController.canShow(ctx)) {
                         HairlineDivider(startInset = 16.dp)
                         IOSRow(
                             title = stringResource(R.string.grant_overlay),
                             icon = Icons.Filled.OpenInNew,
                             iconColor = IOSColors.Orange,
                             onClick = {
-                                ctx.startActivity(com.iccyuan.hush.service.DanmakuController.overlaySettingsIntent(ctx))
+                                ctx.startActivity(DanmakuController.overlaySettingsIntent(ctx))
                             },
                         )
                     }
@@ -341,14 +349,14 @@ private fun AddRow(
 
 /** 匹配当前（未保存）规则的应用 + 触发器的近期已记录通知。 */
 @Composable
-private fun PreviewSection(rule: com.iccyuan.hush.data.model.Rule) {
+private fun PreviewSection(rule: Rule) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val engine = remember { com.iccyuan.hush.engine.RuleEngine() }
+    val engine = remember { RuleEngine() }
     val logs by androidx.compose.runtime.produceState(
-        initialValue = emptyList<com.iccyuan.hush.data.model.NotificationLog>(),
+        initialValue = emptyList<NotificationLog>(),
     ) {
         value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            com.iccyuan.hush.data.NotificationLogRepository.get(context).recent(200)
+            NotificationLogRepository.get(context).recent(200)
         }
     }
     // 既没有触发器也没有应用过滤的规则会匹配*所有内容*，因此预览它
@@ -385,8 +393,8 @@ private fun PreviewSection(rule: com.iccyuan.hush.data.model.Rule) {
 
 /** 交互式测试器：输入一条样例通知，调用引擎模拟并展示命中/改写/副作用结果。 */
 @Composable
-private fun SimulatorSection(rule: com.iccyuan.hush.data.model.Rule) {
-    val engine = remember { com.iccyuan.hush.engine.RuleEngine() }
+private fun SimulatorSection(rule: Rule) {
+    val engine = remember { RuleEngine() }
     var title by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
     val pkg = rule.appPackages.firstOrNull() ?: "com.example.app"
@@ -412,7 +420,7 @@ private fun SimulatorSection(rule: com.iccyuan.hush.data.model.Rule) {
 }
 
 @Composable
-private fun SimResult(decision: com.iccyuan.hush.engine.Decision) {
+private fun SimResult(decision: Decision) {
     Column(Modifier.padding(16.dp)) {
         Text(
             stringResource(if (decision.matched) R.string.sim_match else R.string.sim_no_match),
@@ -471,10 +479,10 @@ private fun effectName(effect: SideEffect): String? = when (effect) {
 private fun SelectedAppsChips(packages: List<String>, onClick: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val infos by androidx.compose.runtime.produceState(
-        initialValue = emptyList<com.iccyuan.hush.data.AppInfo>(), packages,
+        initialValue = emptyList<AppInfo>(), packages,
     ) {
         value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            com.iccyuan.hush.data.InstalledApps.infoFor(context, packages)
+            InstalledApps.infoFor(context, packages)
         }
     }
     FlowRow(
@@ -490,7 +498,7 @@ private fun SelectedAppsChips(packages: List<String>, onClick: () -> Unit) {
 }
 
 @Composable
-private fun AppChip(app: com.iccyuan.hush.data.AppInfo) {
+private fun AppChip(app: AppInfo) {
     val bmp = remember(app.packageName) {
         runCatching { app.icon?.toBitmap(48, 48)?.asImageBitmap() }.getOrNull()
     }

@@ -4,6 +4,7 @@
 )
 
 package com.iccyuan.hush.ui.editor
+import com.iccyuan.hush.data.HolidayProvider
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -180,8 +181,8 @@ private fun HolidayConditionFields(
         Spacer(Modifier.height(8.dp))
         // 只展示「当年」数据状态——往年数据对判断今天是否放假/调休没有意义。
         val ctx = androidx.compose.ui.platform.LocalContext.current
-        val year = com.iccyuan.hush.data.HolidayProvider.currentYear()
-        val verified = remember { com.iccyuan.hush.data.HolidayProvider.isCurrentYearVerified(ctx) }
+        val year = HolidayProvider.currentYear()
+        val verified = remember { HolidayProvider.isCurrentYearVerified(ctx) }
         Text(
             stringResource(
                 if (verified) R.string.holiday_coverage_verified else R.string.holiday_coverage_bundled,
@@ -228,14 +229,14 @@ private fun HolidayConditionFields(
     }
 }
 
-/** 内联的月历，每一天都通过 [com.iccyuan.hush.data.HolidayProvider] 进行分类/标记。 */
+/** 内联的月历，每一天都通过 [HolidayProvider] 进行分类/标记。 */
 @Composable
 private fun HolidayCalendar() {
     val context = androidx.compose.ui.platform.LocalContext.current
     // 确保节假日数据已加载（若已加载则无操作）。
     androidx.compose.runtime.LaunchedEffect(Unit) {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            com.iccyuan.hush.data.HolidayProvider.ensureLoaded(context)
+            HolidayProvider.ensureLoaded(context)
         }
     }
     val now = remember { java.util.Calendar.getInstance() }
@@ -287,7 +288,7 @@ private fun HolidayCalendar() {
                     Box(Modifier.weight(1f).padding(2.dp), contentAlignment = Alignment.Center) {
                         if (day != null) {
                             val iso = isoDayOfWeek(year, month, day)
-                            val type = com.iccyuan.hush.data.HolidayProvider.dayType(year, month, day, iso)
+                            val type = HolidayProvider.dayType(year, month, day, iso)
                             val key = "%04d-%02d-%02d".format(year, month, day)
                             DayCell(day, type, isToday = key == todayKey)
                         }
@@ -323,17 +324,17 @@ private fun CalNavButton(icon: androidx.compose.ui.graphics.vector.ImageVector, 
 }
 
 @Composable
-private fun DayCell(day: Int, type: com.iccyuan.hush.data.model.DayType, isToday: Boolean) {
+private fun DayCell(day: Int, type: DayType, isToday: Boolean) {
     val red = IOSColors.Red
     val orange = IOSColors.Orange
     val (bg, fg, mark) = when (type) {
-        com.iccyuan.hush.data.model.DayType.LEGAL_HOLIDAY ->
+        DayType.LEGAL_HOLIDAY ->
             Triple(red.copy(alpha = 0.14f), red, stringResource(R.string.holiday_mark_off))
-        com.iccyuan.hush.data.model.DayType.MAKEUP_WORKDAY ->
+        DayType.MAKEUP_WORKDAY ->
             Triple(orange.copy(alpha = 0.14f), orange, stringResource(R.string.holiday_mark_work))
-        com.iccyuan.hush.data.model.DayType.WEEKEND ->
+        DayType.WEEKEND ->
             Triple(Color.Transparent, MaterialTheme.colorScheme.onSurfaceVariant, null)
-        com.iccyuan.hush.data.model.DayType.WORKDAY ->
+        DayType.WORKDAY ->
             Triple(Color.Transparent, MaterialTheme.colorScheme.onSurface, null)
     }
     Box(
@@ -352,7 +353,7 @@ private fun DayCell(day: Int, type: com.iccyuan.hush.data.model.DayType, isToday
             day.toString(),
             style = MaterialTheme.typography.bodyMedium,
             color = fg,
-            fontWeight = if (type == com.iccyuan.hush.data.model.DayType.LEGAL_HOLIDAY) FontWeight.SemiBold else FontWeight.Normal,
+            fontWeight = if (type == DayType.LEGAL_HOLIDAY) FontWeight.SemiBold else FontWeight.Normal,
         )
         if (mark != null) {
             Text(
