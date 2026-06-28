@@ -127,6 +127,9 @@
     <string name="body_type">请求体类型</string>
     <string name="section_request">请求</string>
     <string name="section_body">请求体</string>
+    <string name="format_json">格式化</string>
+    <string name="body_help_title">请求体使用说明与占位符</string>
+    <string name="body_help_detail">请求体会作为 HTTP 请求体发送（仅 POST）。其中的占位符在规则命中时被替换：\n• {title} {text} {app} {package} — 通知的标题 / 内容 / 应用名 / 包名\n• {1}…{9} — 文本触发器正则的捕获组\n• {var:名字} — 「设置变量」动作存的值\n• {time} {date} — 当前时间 / 日期\n\n选 JSON 类型时请保持合法 JSON，占位符放在字符串值里，例如 {\"text\":\"{text}\"}。注意：若 {text} 含引号或换行可能破坏 JSON（暂不自动转义）。点「格式化」可美化 JSON 缩进。</string>
     <string name="webhook_get_hint">GET 不发送请求体。要传数据请用上方的查询参数。</string>
     <string name="minutes">分钟</string>
     <string name="seconds">秒</string>

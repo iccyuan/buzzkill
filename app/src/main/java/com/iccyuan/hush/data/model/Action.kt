@@ -189,6 +189,5 @@ data class KeyValue(
 enum class WebhookBodyType(val contentType: String) {
     JSON("application/json; charset=utf-8"),
     TEXT("text/plain; charset=utf-8"),
-    FORM("application/x-www-form-urlencoded; charset=utf-8"),
     XML("application/xml; charset=utf-8"),
 }

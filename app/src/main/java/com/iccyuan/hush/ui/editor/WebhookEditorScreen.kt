@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,8 +49,19 @@ import com.iccyuan.hush.ui.theme.IOSColors
 private fun bodyTypeLabel(t: WebhookBodyType): String = when (t) {
     WebhookBodyType.JSON -> "JSON (application/json)"
     WebhookBodyType.TEXT -> "Text (text/plain)"
-    WebhookBodyType.FORM -> "Form (x-www-form-urlencoded)"
     WebhookBodyType.XML -> "XML (application/xml)"
+}
+
+/** 尝试把 JSON 美化缩进；不是合法 JSON 时返回 null（保持原样）。 */
+private fun formatJson(s: String): String? = try {
+    val t = s.trim()
+    when {
+        t.startsWith("{") -> org.json.JSONObject(t).toString(2)
+        t.startsWith("[") -> org.json.JSONArray(t).toString(2)
+        else -> null
+    }
+} catch (_: Exception) {
+    null
 }
 
 /**
@@ -99,20 +113,20 @@ fun WebhookEditorScreen(
                 }
             }
 
+            // 请求头（放在查询参数之前）。
+            KeyValueSection(
+                header = stringResource(R.string.http_headers),
+                addLabel = stringResource(R.string.add_header),
+                items = draft.headers,
+                onChange = { draft = draft.copy(headers = it) },
+            )
+
             // 查询参数（拼到 URL，GET/POST 都可用）。
             KeyValueSection(
                 header = stringResource(R.string.query_params),
                 addLabel = stringResource(R.string.add_param),
                 items = draft.queryParams,
                 onChange = { draft = draft.copy(queryParams = it) },
-            )
-
-            // 请求头。
-            KeyValueSection(
-                header = stringResource(R.string.http_headers),
-                addLabel = stringResource(R.string.add_header),
-                items = draft.headers,
-                onChange = { draft = draft.copy(headers = it) },
             )
 
             // 请求体（仅 POST）：类型 + 内容。
@@ -127,9 +141,29 @@ fun WebhookEditorScreen(
                             onSelected = { draft = draft.copy(bodyType = it) },
                         )
                         Spacer(Modifier.height(8.dp))
+                        // 标题行：左侧标签，JSON 类型时右侧「格式化」按钮。
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                stringResource(R.string.body_template),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f),
+                            )
+                            if (draft.bodyType == WebhookBodyType.JSON) {
+                                TextButton(onClick = {
+                                    formatJson(draft.bodyTemplate)?.let { draft = draft.copy(bodyTemplate = it) }
+                                }) { Text(stringResource(R.string.format_json)) }
+                            }
+                        }
+                        // 更高的多行输入框，方便编辑较长的 JSON/文本。
                         LabeledTextField(
-                            stringResource(R.string.body_template), draft.bodyTemplate, singleLine = false,
+                            stringResource(R.string.body_template),
+                            draft.bodyTemplate,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 160.dp),
+                            singleLine = false,
                         ) { draft = draft.copy(bodyTemplate = it) }
+                        Spacer(Modifier.height(8.dp))
+                        BodyHelp()
                     }
                 }
             } else {
@@ -141,6 +175,7 @@ fun WebhookEditorScreen(
                 )
             }
 
+            // URL / 参数 / 请求头的值也都支持占位符。
             Text(
                 stringResource(R.string.template_hint),
                 style = MaterialTheme.typography.bodySmall,
@@ -208,3 +243,34 @@ private fun KeyValueSection(
 
 private fun <T> List<T>.mapAt(index: Int, transform: (T) -> T): List<T> =
     mapIndexed { i, item -> if (i == index) transform(item) else item }
+
+/** 可展开的「请求体使用说明」：占位符、JSON 写法与注意事项。 */
+@Composable
+private fun BodyHelp() {
+    var open by remember { mutableStateOf(false) }
+    Column {
+        Row(
+            Modifier.fillMaxWidth().clickable { open = !open }.padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(
+                if (open) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                contentDescription = null,
+                tint = IOSColors.Blue,
+            )
+            Text(
+                stringResource(R.string.body_help_title),
+                color = IOSColors.Blue,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        if (open) {
+            Text(
+                stringResource(R.string.body_help_detail),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
