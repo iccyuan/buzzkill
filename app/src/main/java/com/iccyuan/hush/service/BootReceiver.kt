@@ -11,5 +11,7 @@ import android.content.Intent
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         ChannelManager(context).ensureBaseChannels()
+        // 开机后立即拉起前台保活服务（开机广播可豁免后台启动限制）。
+        KeepAliveService.start(context)
     }
 }

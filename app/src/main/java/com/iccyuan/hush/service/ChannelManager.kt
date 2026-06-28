@@ -23,6 +23,7 @@ class ChannelManager(private val context: Context) {
         const val HISTORY_CHANNEL = "buzzkill_activity"
         const val DEFAULT_REPOST = "buzzkill_repost_default"
         const val DIGEST_CHANNEL = "buzzkill_digest"
+        const val KEEPALIVE_CHANNEL = "hush_running"
     }
 
     fun ensureBaseChannels() {
@@ -39,6 +40,17 @@ class ChannelManager(private val context: Context) {
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply { description = context.getString(com.iccyuan.hush.R.string.channel_digest_desc) }
         nm.createNotificationChannel(digest)
+
+        // 保活前台服务的常驻通知渠道：低重要性（静音、不弹横幅，但在通知栏可见可展开操作），无角标。
+        val keepAlive = NotificationChannel(
+            KEEPALIVE_CHANNEL,
+            context.getString(com.iccyuan.hush.R.string.channel_keepalive),
+            NotificationManager.IMPORTANCE_LOW,
+        ).apply {
+            description = context.getString(com.iccyuan.hush.R.string.channel_keepalive_desc)
+            setShowBadge(false)
+        }
+        nm.createNotificationChannel(keepAlive)
     }
 
     /** 返回与所请求的提醒覆盖项相匹配的通知渠道 id。 */
