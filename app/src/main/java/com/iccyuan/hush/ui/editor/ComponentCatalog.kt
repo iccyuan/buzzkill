@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Snooze
@@ -74,6 +75,9 @@ object ComponentCatalog {
         },
         CatalogEntry(R.string.cat_trig_promo, R.string.cat_trig_promo_desc, Icons.Filled.Campaign, Orange) {
             Trigger.PromoTrigger(Ids.next())
+        },
+        CatalogEntry(R.string.cat_trig_event, R.string.cat_trig_event_desc, Icons.Filled.Sensors, Purple) {
+            Trigger.DeviceEvent(Ids.next())
         },
     )
 
@@ -171,6 +175,7 @@ object ComponentVisuals {
         is Trigger.OngoingTrigger -> Icons.Filled.MusicNote to Indigo
         is Trigger.HasReplyTrigger -> Icons.AutoMirrored.Filled.Reply to Teal
         is Trigger.PromoTrigger -> Icons.Filled.Campaign to Orange
+        is Trigger.DeviceEvent -> Icons.Filled.Sensors to Purple
     }
 
     fun of(c: Condition): Pair<ImageVector, Color> = when (c) {

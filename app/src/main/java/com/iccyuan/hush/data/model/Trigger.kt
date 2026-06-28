@@ -51,4 +51,19 @@ sealed class Trigger {
     data class PromoTrigger(
         override val id: String,
     ) : Trigger()
+
+    /**
+     * 设备事件触发器：在某个设备状态切换的那一刻（如 Wi-Fi 连上/断开）触发规则的动作，
+     * 与通知无关。带有此触发器的规则是「事件驱动」的，不参与通知匹配（见 RuleEngine）。
+     */
+    @Serializable
+    @SerialName("device_event")
+    data class DeviceEvent(
+        override val id: String,
+        val event: DeviceEventType = DeviceEventType.WIFI_CONNECTED,
+    ) : Trigger()
 }
+
+/** 规则是否由设备事件驱动（含 [Trigger.DeviceEvent]）——事件规则不走通知匹配路径。 */
+val Rule.isEventDriven: Boolean
+    get() = triggers.any { it is Trigger.DeviceEvent }

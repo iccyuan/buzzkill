@@ -65,6 +65,18 @@ enum class VibrationPreset(val label: String, val pattern: LongArray) {
 enum class HttpMethod { GET, POST, PUT }
 
 /**
+ * [Trigger.DeviceEvent] 监听的设备事件——在状态切换的那一刻触发规则（无需通知）。
+ * 这是一个可扩展集合：后续可加入「进入/离开围栏」「开始/停止充电」等。
+ */
+@Serializable
+enum class DeviceEventType {
+    /** 连上 Wi-Fi 的那一刻。 */
+    WIFI_CONNECTED,
+    /** 断开 Wi-Fi 的那一刻。 */
+    WIFI_DISCONNECTED,
+}
+
+/**
  * 用于节假日条件的日历日期分类。由内置的中国法定节假日日历
  * 加上工作日/周末的兜底规则决定。
  */

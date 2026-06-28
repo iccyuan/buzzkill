@@ -1,5 +1,9 @@
 package com.iccyuan.hush.service
 
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.iccyuan.hush.data.NotificationLogRepository
@@ -7,8 +11,10 @@ import com.iccyuan.hush.data.RuleRepository
 import com.iccyuan.hush.data.RuntimeStateStore
 import com.iccyuan.hush.data.SettingsStore
 import com.iccyuan.hush.data.model.Condition
+import com.iccyuan.hush.data.model.DeviceEventType
 import com.iccyuan.hush.data.model.NotificationLog
 import com.iccyuan.hush.data.model.Rule
+import com.iccyuan.hush.data.model.Trigger
 import com.iccyuan.hush.engine.Decision
 import com.iccyuan.hush.engine.MatchContext
 import com.iccyuan.hush.engine.RuleEngine
@@ -52,15 +58,77 @@ class HushListenerService : NotificationListenerService() {
     @Volatile private var needsHeadphones: Boolean = false
     @Volatile private var needsWifi: Boolean = false
     @Volatile private var needsLocation: Boolean = false
+    @Volatile private var needsWifiEvents: Boolean = false
 
-    /** 更新内存中的活动规则，并据此重算需要采样哪些设备状态、同步地理围栏。 */
+    // Wi-Fi 连接/断开事件监听（仅当有事件规则用到时才注册，省资源）。
+    private var wifiCallback: ConnectivityManager.NetworkCallback? = null
+    @Volatile private var wifiUp: Boolean = false
+
+    /** 更新内存中的活动规则，并据此重算需要采样哪些设备状态、同步地理围栏与事件监听。 */
     private fun setActiveRules(rules: List<Rule>) {
         activeRules = rules
         needsHeadphones = rules.any { r -> r.conditions.any { it is Condition.HeadphonesCondition } }
         needsWifi = rules.any { r -> r.conditions.any { it is Condition.WifiCondition } }
         needsLocation = rules.any { r -> r.conditions.any { it is Condition.LocationCondition } }
+        needsWifiEvents = rules.any { r ->
+            r.triggers.any { t ->
+                t is Trigger.DeviceEvent &&
+                    (t.event == DeviceEventType.WIFI_CONNECTED || t.event == DeviceEventType.WIFI_DISCONNECTED)
+            }
+        }
         // 按当前规则用到的位置条件，增量同步高德地理围栏（无则全部移除，不再耗电）。
         GeofenceManager.sync(this, rules)
+        syncWifiEventMonitor()
+    }
+
+    /** 按需注册/注销 Wi-Fi 网络回调；初始状态先 seed，避免注册瞬间把「已连」误报成一次连接事件。 */
+    private fun syncWifiEventMonitor() {
+        val cm = getSystemService(ConnectivityManager::class.java) ?: return
+        if (needsWifiEvents && wifiCallback == null) {
+            wifiUp = isWifiConnectedNow(cm)
+            val cb = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    if (!wifiUp) { wifiUp = true; onWifiEvent(DeviceEventType.WIFI_CONNECTED) }
+                }
+                override fun onLost(network: Network) {
+                    if (wifiUp) { wifiUp = false; onWifiEvent(DeviceEventType.WIFI_DISCONNECTED) }
+                }
+            }
+            val req = NetworkRequest.Builder()
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .build()
+            runCatching { cm.registerNetworkCallback(req, cb); wifiCallback = cb }
+                .onFailure { Logger.w("wifi monitor register failed: ${it.message}") }
+        } else if (!needsWifiEvents && wifiCallback != null) {
+            runCatching { cm.unregisterNetworkCallback(wifiCallback!!) }
+            wifiCallback = null
+        }
+    }
+
+    private fun isWifiConnectedNow(cm: ConnectivityManager): Boolean {
+        val n = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(n) ?: return false
+        return caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+    }
+
+    /** Wi-Fi 连/断的那一刻：评估事件规则并执行其副作用（如发提醒通知）。 */
+    private fun onWifiEvent(event: DeviceEventType) {
+        if (!masterEnabled) return
+        Logger.i("wifi event: $event")
+        scope.launch {
+            try {
+                val device = DeviceState.sample(this@HushListenerService, needsHeadphones, true, needsLocation)
+                val appName = NotificationFields.appLabel(this@HushListenerService, packageName)
+                val decision = engine.evaluateEvent(event, activeRules, device, packageName, appName)
+                if (decision.matched) {
+                    // 事件无源通知，仅执行副作用（通知提醒等），不涉及改写/丢弃通知。
+                    sideEffects.execute(decision.sideEffects)
+                    recordFires(decision)
+                }
+            } catch (t: Throwable) {
+                Logger.e("wifi event failed", t)
+            }
+        }
     }
 
     override fun onCreate() {
@@ -272,6 +340,10 @@ class HushListenerService : NotificationListenerService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        wifiCallback?.let { cb ->
+            runCatching { getSystemService(ConnectivityManager::class.java)?.unregisterNetworkCallback(cb) }
+        }
+        wifiCallback = null
         tts.shutdown()
         scope.cancel()
     }

@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.iccyuan.hush.R
+import com.iccyuan.hush.data.model.DeviceEventType
 import com.iccyuan.hush.data.model.MatchMode
 import com.iccyuan.hush.data.model.NotificationField
 import com.iccyuan.hush.data.model.Trigger
@@ -57,6 +58,7 @@ fun TriggerEditorDialog(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                is Trigger.DeviceEvent -> DeviceEventFields(t) { draft = it }
             }
         }
         DialogActions(
@@ -64,6 +66,26 @@ fun TriggerEditorDialog(
             onConfirm = { onSave(draft) },
             secondaryText = stringResource(if (onDelete != null) R.string.delete else R.string.cancel),
             onSecondary = { onDelete?.invoke() ?: onDismiss() },
+        )
+    }
+}
+
+@Composable
+private fun DeviceEventFields(t: Trigger.DeviceEvent, onChange: (Trigger.DeviceEvent) -> Unit) {
+    val labels = DeviceEventType.entries.associateWith { stringResource(Localize.eventRes(it)) }
+    Column {
+        Text(
+            stringResource(R.string.device_event_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(8.dp))
+        EnumDropdown(
+            label = stringResource(R.string.event_type),
+            options = DeviceEventType.entries,
+            selected = t.event,
+            optionLabel = { labels.getValue(it) },
+            onSelected = { onChange(t.copy(event = it)) },
         )
     }
 }

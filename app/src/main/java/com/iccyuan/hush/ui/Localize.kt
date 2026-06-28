@@ -8,6 +8,7 @@ import com.iccyuan.hush.R
 import com.iccyuan.hush.data.model.Action
 import com.iccyuan.hush.data.model.Condition
 import com.iccyuan.hush.data.model.DayType
+import com.iccyuan.hush.data.model.DeviceEventType
 import com.iccyuan.hush.data.model.Importance
 import com.iccyuan.hush.data.model.LogicMode
 import com.iccyuan.hush.data.model.MatchMode
@@ -99,6 +100,13 @@ object Localize {
         is Trigger.HasReplyTrigger ->
             stringResource(if (t.mustHaveReply) R.string.sum_reply_yes else R.string.sum_reply_no)
         is Trigger.PromoTrigger -> stringResource(R.string.sum_promo)
+        is Trigger.DeviceEvent -> stringResource(eventRes(t.event))
+    }
+
+    @StringRes
+    fun eventRes(e: DeviceEventType): Int = when (e) {
+        DeviceEventType.WIFI_CONNECTED -> R.string.event_wifi_connected
+        DeviceEventType.WIFI_DISCONNECTED -> R.string.event_wifi_disconnected
     }
 
     @Composable

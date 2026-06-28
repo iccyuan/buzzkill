@@ -3,11 +3,13 @@ package com.iccyuan.hush.engine
 import com.iccyuan.hush.data.model.Action
 import com.iccyuan.hush.data.model.Condition
 import com.iccyuan.hush.data.model.DayType
+import com.iccyuan.hush.data.model.DeviceEventType
 import com.iccyuan.hush.data.model.LogicMode
 import com.iccyuan.hush.data.model.NotificationField
 import com.iccyuan.hush.data.model.Rule
 import com.iccyuan.hush.data.model.Trigger
 import com.iccyuan.hush.data.model.VibrationPreset
+import com.iccyuan.hush.data.model.isEventDriven
 
 /**
  * 纯评估内核：给定一条通知的快照和当前生效的规则，
@@ -67,6 +69,8 @@ class RuleEngine {
         }
 
         for (rule in rules) {
+            // 事件驱动规则（Wi-Fi 连断等）由 evaluateEvent 处理，不参与通知匹配。
+            if (rule.isEventDriven) continue
             if (!appMatches(rule, ctx.packageName)) continue
 
             val captures = mutableMapOf<String, String>()
@@ -125,6 +129,34 @@ class RuleEngine {
         // 防骚扰：仅按通知类别识别营销/推广（Notification.CATEGORY_PROMO == "promo"）。
         is Trigger.PromoTrigger ->
             ctx.field(NotificationField.CATEGORY).equals(PROMO_CATEGORY, ignoreCase = true)
+        // 设备事件触发器永不匹配通知——它们由 evaluateEvent 在事件发生时单独处理。
+        is Trigger.DeviceEvent -> false
+    }
+
+    /**
+     * 事件驱动路径：某个设备事件（如 Wi-Fi 连上）发生的那一刻，对所有监听该事件的规则
+     * 评估其条件并执行动作，产出携带副作用的 [Decision]（由服务执行通知提醒等副作用）。
+     */
+    fun evaluateEvent(
+        event: DeviceEventType,
+        rules: List<Rule>,
+        device: DeviceContext,
+        selfPackage: String,
+        selfAppName: String,
+    ): Decision {
+        val decision = Decision()
+        for (rule in rules) {
+            val matches = rule.triggers.any { it is Trigger.DeviceEvent && it.event == event }
+            if (!matches) continue
+            // 每条规则用独立的 ctx：事件无通知内容，仅承载设备状态供条件/模板使用。
+            val ctx = MatchContext(selfPackage, selfAppName, mutableMapOf(), false, false, device)
+            if (!conditionsHold(rule, ctx)) continue
+            applyActions(rule, ctx, decision)
+            decision.matched = true
+            decision.firedRuleIds.add(rule.id)
+            startCooldownIfAny(rule, ctx)
+        }
+        return decision
     }
 
     private fun conditionsHold(rule: Rule, ctx: MatchContext): Boolean {
