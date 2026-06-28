@@ -9,7 +9,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,12 +40,15 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -70,6 +72,7 @@ import com.iccyuan.hush.ui.common.rememberListenerConnected
 import com.iccyuan.hush.ui.common.rememberNotificationAccessGranted
 import com.iccyuan.hush.ui.theme.IOSColors
 import com.iccyuan.hush.ui.findActivity
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
@@ -89,8 +92,21 @@ fun SettingsScreen(
     val currentLang by LanguageStore.language.collectAsStateWithLifecycle()
     val updateChecking by vm.updateChecking.collectAsStateWithLifecycle()
     var pendingUpdate by remember { mutableStateOf<UpdateChecker.Result?>(null) }
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val showMessage: (String) -> Unit = { msg -> scope.launch { snackbar.showSnackbar(msg) } }
 
-    GlassScaffold(title = stringResource(R.string.settings), onBack = onBack, bottomBar = bottomBar) { padding ->
+    GlassScaffold(
+        title = stringResource(R.string.settings),
+        onBack = onBack,
+        bottomBar = bottomBar,
+        overlay = {
+            Box(
+                Modifier.fillMaxSize().padding(bottom = 88.dp),
+                contentAlignment = Alignment.BottomCenter,
+            ) { SnackbarHost(snackbar) }
+        },
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -238,11 +254,10 @@ fun SettingsScreen(
                         text = if (holUpdating) "…" else stringResource(R.string.holiday_update),
                         onClick = {
                             if (!holUpdating) vm.updateHolidays { ok ->
-                                toast(
-                                    context,
+                                showMessage(
                                     context.getString(
                                         if (ok) R.string.holiday_update_done else R.string.holiday_update_failed
-                                    ),
+                                    )
                                 )
                             }
                         },
@@ -258,7 +273,7 @@ fun SettingsScreen(
                         onClick = {
                             vm.exportRules { json ->
                                 copyToClipboard(context, json)
-                                toast(context, context.getString(R.string.export_copied))
+                                showMessage(context.getString(R.string.export_copied))
                             }
                         },
                     )
@@ -286,9 +301,9 @@ fun SettingsScreen(
                     onClick = {
                         if (!updateChecking) vm.checkUpdate { result ->
                             when {
-                                result == null -> toast(context, context.getString(R.string.update_failed))
+                                result == null -> showMessage(context.getString(R.string.update_failed))
                                 result.hasUpdate -> pendingUpdate = result
-                                else -> toast(context, context.getString(R.string.update_latest))
+                                else -> showMessage(context.getString(R.string.update_latest))
                             }
                         }
                     },
@@ -321,10 +336,9 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(onClick = {
                     vm.importRules(text) { count ->
-                        toast(
-                            context,
+                        showMessage(
                             if (count >= 0) context.getString(R.string.import_done, count)
-                            else context.getString(R.string.import_failed),
+                            else context.getString(R.string.import_failed)
                         )
                     }
                     showImport = false
@@ -355,7 +369,7 @@ fun SettingsScreen(
                     if (ApkInstaller.isApk(url)) {
                         // 内置下载：系统 DownloadManager 下到应用私有目录，完成后拉起安装器，不经浏览器。
                         ApkInstaller.downloadAndInstall(context, url, update.latestVersion)
-                        toast(context, context.getString(R.string.update_downloading))
+                        showMessage(context.getString(R.string.update_downloading))
                     } else {
                         // 非 APK 直链（如发布页）——回退到浏览器，并整体 runCatching 防崩溃。
                         val view = Intent(Intent.ACTION_VIEW, Uri.parse(url))
@@ -367,7 +381,7 @@ fun SettingsScreen(
                         }.isSuccess
                         if (!opened) {
                             copyToClipboard(context, url)
-                            toast(context, context.getString(R.string.update_download_fallback))
+                            showMessage(context.getString(R.string.update_download_fallback))
                         }
                     }
                     pendingUpdate = null
@@ -412,6 +426,3 @@ private fun copyToClipboard(context: Context, text: String) {
     cm.setPrimaryClip(ClipData.newPlainText("Hush rules", text))
 }
 
-private fun toast(context: Context, message: String) {
-    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-}
