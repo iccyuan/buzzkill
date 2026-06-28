@@ -22,12 +22,34 @@ object TemplateEngine {
     // 会拒绝出现在 {n,m} 量词之外的裸 '}'。
     private val TOKEN = Regex("""\{([a-zA-Z0-9_:]+)\}""")
 
-    fun render(template: String, ctx: MatchContext): String {
+    /**
+     * 渲染模板。[escape] 仅作用于「被替换进来的占位符值」，不影响模板里用户写的字面字符——
+     * 用于 JSON 请求体时传入 [jsonEscape]，使 {text} 等值里的引号/换行等被转义，不破坏 JSON。
+     */
+    fun render(template: String, ctx: MatchContext, escape: (String) -> String = { it }): String {
         if (template.isEmpty()) return template
         return TOKEN.replace(template) { m ->
             val key = m.groupValues[1]
-            resolve(key, ctx) ?: m.value
+            resolve(key, ctx)?.let(escape) ?: m.value
         }
+    }
+
+    /** 把字符串转义成可安全放进 JSON 字符串字面量内部的形式（不含外层引号）。 */
+    fun jsonEscape(s: String): String {
+        val sb = StringBuilder(s.length + 8)
+        for (c in s) {
+            when (c) {
+                '"' -> sb.append("\\\"")
+                '\\' -> sb.append("\\\\")
+                '\n' -> sb.append("\\n")
+                '\r' -> sb.append("\\r")
+                '\t' -> sb.append("\\t")
+                '\b' -> sb.append("\\b")
+                '' -> sb.append("\\f")
+                else -> if (c < ' ') sb.append("\\u%04x".format(c.code)) else sb.append(c)
+            }
+        }
+        return sb.toString()
     }
 
     private fun resolve(key: String, ctx: MatchContext): String? = when {

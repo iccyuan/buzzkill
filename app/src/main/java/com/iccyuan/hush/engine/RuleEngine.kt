@@ -8,6 +8,7 @@ import com.iccyuan.hush.data.model.HttpMethod
 import com.iccyuan.hush.data.model.LogicMode
 import com.iccyuan.hush.data.model.NotificationField
 import com.iccyuan.hush.data.model.Rule
+import com.iccyuan.hush.data.model.WebhookBodyType
 import com.iccyuan.hush.data.model.Trigger
 import com.iccyuan.hush.data.model.VibrationPreset
 import com.iccyuan.hush.data.model.isEventDriven
@@ -288,7 +289,12 @@ class RuleEngine {
                             .map { it.name.trim() to TemplateEngine.render(it.value, ctx) },
                         // 仅 POST 携带请求体；GET 不发（contentType 为空即表示不写 body）。
                         contentType = if (action.method == HttpMethod.POST) action.bodyType.contentType else "",
-                        body = TemplateEngine.render(action.bodyTemplate, ctx),
+                        // JSON 请求体：自动转义占位符值里的引号/换行等，避免破坏 JSON 结构。
+                        body = if (action.method == HttpMethod.POST && action.bodyType == WebhookBodyType.JSON) {
+                            TemplateEngine.render(action.bodyTemplate, ctx, TemplateEngine::jsonEscape)
+                        } else {
+                            TemplateEngine.render(action.bodyTemplate, ctx)
+                        },
                     )
                 )
             is Action.MuteAppAction ->

@@ -141,15 +141,9 @@ fun WebhookEditorScreen(
                             onSelected = { draft = draft.copy(bodyType = it) },
                         )
                         Spacer(Modifier.height(8.dp))
-                        // 标题行：左侧标签，JSON 类型时右侧「格式化」按钮。
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                stringResource(R.string.body_template),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.weight(1f),
-                            )
-                            if (draft.bodyType == WebhookBodyType.JSON) {
+                        // 标题用输入框自身的浮动标签即可，避免重复；JSON 类型时右上角放「格式化」。
+                        if (draft.bodyType == WebhookBodyType.JSON) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                                 TextButton(onClick = {
                                     formatJson(draft.bodyTemplate)?.let { draft = draft.copy(bodyTemplate = it) }
                                 }) { Text(stringResource(R.string.format_json)) }
