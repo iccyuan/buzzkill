@@ -216,21 +216,7 @@ fun RuleEditorScreen(
                 AddRow(stringResource(R.string.add_action), Icons.Filled.Bolt, IOSColors.Green) {
                     addKind = AddKind.ACTION
                 }
-            }
-
-            // 选项
-            InsetGroupedSection(header = stringResource(R.string.section_options)) {
-                IOSRow(
-                    title = stringResource(R.string.enabled),
-                    trailing = { IOSSwitch(rule.enabled) { vm.setEnabled(it) } },
-                )
-                HairlineDivider(startInset = 16.dp)
-                IOSRow(
-                    title = stringResource(R.string.stop_processing),
-                    trailing = { IOSSwitch(rule.stopProcessing) { vm.setStopProcessing(it) } },
-                )
-                // 弹幕依赖「屏蔽」动作（只有屏蔽原生通知后才以弹幕替代显示），
-                // 因此仅当规则里已添加「屏蔽」动作时才显示弹幕开关。
+                // 弹幕依赖「屏蔽」动作，紧随动作列表展示；仅当已添加「屏蔽」动作时出现。
                 if (rule.actions.any { it is Action.DiscardAction }) {
                     HairlineDivider(startInset = 16.dp)
                     IOSRow(
@@ -254,6 +240,19 @@ fun RuleEditorScreen(
                         )
                     }
                 }
+            }
+
+            // 选项
+            InsetGroupedSection(header = stringResource(R.string.section_options)) {
+                IOSRow(
+                    title = stringResource(R.string.enabled),
+                    trailing = { IOSSwitch(rule.enabled) { vm.setEnabled(it) } },
+                )
+                HairlineDivider(startInset = 16.dp)
+                IOSRow(
+                    title = stringResource(R.string.stop_processing),
+                    trailing = { IOSSwitch(rule.stopProcessing) { vm.setStopProcessing(it) } },
+                )
                 HairlineDivider(startInset = 16.dp)
                 Column(Modifier.padding(12.dp)) {
                     LabeledTextField(stringResource(R.string.notes), rule.notes, singleLine = false) {

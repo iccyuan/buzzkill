@@ -2,6 +2,7 @@
 
 package com.iccyuan.hush.ui.history
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.draggable
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,17 +30,22 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.iccyuan.hush.R
@@ -49,7 +56,9 @@ import com.iccyuan.hush.ui.components.InsetGroupedSection
 import com.iccyuan.hush.ui.components.cardFrost
 import com.iccyuan.hush.ui.theme.Alpha
 import com.iccyuan.hush.ui.theme.IOSColors
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 private enum class Grouping { DAY, WEEK }
@@ -63,6 +72,18 @@ fun HistoryScreen(
 ) {
     val logs by vm.logs.collectAsStateWithLifecycle()
     val ruleNames by vm.ruleNames.collectAsStateWithLifecycle()
+    // 异步解析历史中各应用的图标（按包名去重），在每条记录前展示其 logo。
+    val context = LocalContext.current
+    val packages = remember(logs) { logs.map { it.packageName }.distinct() }
+    val appIcons by produceState(emptyMap<String, ImageBitmap>(), packages) {
+        value = withContext(Dispatchers.IO) {
+            packages.mapNotNull { pkg ->
+                runCatching {
+                    pkg to context.packageManager.getApplicationIcon(pkg).toBitmap(48, 48).asImageBitmap()
+                }.getOrNull()
+            }.toMap()
+        }
+    }
     var grouping by remember { mutableStateOf(Grouping.DAY) }
     var selectedApp by remember { mutableStateOf<String?>(null) }
 
@@ -132,6 +153,7 @@ fun HistoryScreen(
                             SwipeableLogRow(
                                 log = log,
                                 ruleNames = ruleNames,
+                                icon = appIcons[log.packageName],
                                 onDelete = { vm.delete(log) },
                                 onCreateRule = onCreateRule?.let { cb ->
                                     { vm.createRuleFrom(log) { id -> cb(id) } }
@@ -251,6 +273,7 @@ private fun Chip(label: String, active: Boolean, onClick: () -> Unit) {
 private fun SwipeableLogRow(
     log: NotificationLog,
     ruleNames: Map<Long, String>,
+    icon: ImageBitmap?,
     onDelete: () -> Unit,
     onCreateRule: (() -> Unit)? = null,
 ) {
@@ -302,13 +325,18 @@ private fun SwipeableLogRow(
                     },
                 ),
         ) {
-            LogRow(log, ruleNames, onCreateRule)
+            LogRow(log, ruleNames, icon, onCreateRule)
         }
     }
 }
 
 @Composable
-private fun LogRow(log: NotificationLog, ruleNames: Map<Long, String>, onCreateRule: (() -> Unit)? = null) {
+private fun LogRow(
+    log: NotificationLog,
+    ruleNames: Map<Long, String>,
+    icon: ImageBitmap?,
+    onCreateRule: (() -> Unit)? = null,
+) {
     // 以 id 作为 key，这样当列表发生变化（例如删除后）时，展开状态能跟随其对应的日志。
     var expanded by remember(log.id) { mutableStateOf(false) }
     Column(
@@ -318,6 +346,14 @@ private fun LogRow(log: NotificationLog, ruleNames: Map<Long, String>, onCreateR
             .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Image(
+                    bitmap = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp).clip(RoundedCornerShape(6.dp)),
+                )
+                Spacer(Modifier.width(10.dp))
+            }
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
