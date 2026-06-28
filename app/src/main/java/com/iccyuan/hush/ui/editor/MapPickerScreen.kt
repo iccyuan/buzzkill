@@ -36,12 +36,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.amap.api.maps.CameraUpdateFactory
-import com.amap.api.maps.MapView
 import com.amap.api.maps.MapsInitializer
+import com.amap.api.maps.TextureMapView
 import com.amap.api.maps.model.CircleOptions
 import com.amap.api.maps.model.LatLng
 import com.amap.api.maps.model.MarkerOptions
 import com.amap.api.maps.model.MyLocationStyle
+import com.iccyuan.hush.ui.components.frostedOverlay
+import com.iccyuan.hush.ui.components.hazeSourceLayer
+import dev.chrisbanes.haze.HazeState
 
 /**
  * 内嵌在条件弹窗里的高德地图选点：开启「我的位置」蓝点，打开时自动定位到当前位置；
@@ -69,14 +72,17 @@ fun LocationMap(
         }
     }
 
+    // 用 TextureMapView（而非默认的 GL SurfaceView 版 MapView）：它渲染进视图层级，
+    // Haze 才能捕获并对其做毛玻璃模糊，给控件做出真实的高斯模糊背景。
     // 高德要求在构造 MapView 之前完成隐私合规声明，否则会抛异常/崩溃。
     val mapView = remember {
         runCatching {
             MapsInitializer.updatePrivacyShow(context, true, true)
             MapsInitializer.updatePrivacyAgree(context, true)
         }
-        MapView(context)
+        TextureMapView(context)
     }
+    val mapHaze = remember { HazeState() }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         mapView.onCreate(null)
@@ -133,9 +139,12 @@ fun LocationMap(
     }
 
     Box(modifier.fillMaxSize()) {
-        AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize())
+        AndroidView(
+            factory = { mapView },
+            modifier = Modifier.fillMaxSize().hazeSourceLayer(mapHaze),
+        )
 
-        // 自绘控件：缩放（合并在一张白卡上）+ 定位，靠右垂直排列。
+        // 自绘控件：缩放（合并在一张卡上）+ 定位，靠右垂直排列。背景是对地图做毛玻璃模糊。
         Column(
             Modifier.align(Alignment.BottomEnd).padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -145,12 +154,12 @@ fun LocationMap(
                 Modifier
                     .shadow(3.dp, RoundedCornerShape(10.dp))
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Color.White),
+                    .frostedOverlay(mapHaze),
             ) {
                 MapControl(Icons.Filled.Add) {
                     mapView.map.animateCamera(CameraUpdateFactory.zoomIn())
                 }
-                Box(Modifier.size(40.dp, 1.dp).background(Color(0x14000000)))
+                Box(Modifier.size(40.dp, 1.dp).background(Color(0x22000000)))
                 MapControl(Icons.Filled.Remove) {
                     mapView.map.animateCamera(CameraUpdateFactory.zoomOut())
                 }
@@ -159,7 +168,7 @@ fun LocationMap(
                 Modifier
                     .shadow(3.dp, RoundedCornerShape(10.dp))
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Color.White),
+                    .frostedOverlay(mapHaze),
             ) {
                 MapControl(Icons.Filled.MyLocation) {
                     mapView.map.myLocation?.let { loc ->
