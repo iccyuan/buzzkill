@@ -199,6 +199,18 @@ fun RuleEditorScreen(
 
             // 条件
             InsetGroupedSection(header = stringResource(R.string.section_conditions)) {
+                // 多个条件之间的组合方式（与/或）；单个条件时无意义，故仅在 ≥2 个时出现。
+                if (rule.conditions.size >= 2) {
+                    Column(Modifier.padding(12.dp)) {
+                        IOSSegmented(
+                            options = LogicMode.entries,
+                            selected = rule.conditionLogic,
+                            label = { stringResource(Localize.logicRes(it)) },
+                            onSelect = { vm.setConditionLogic(it) },
+                        )
+                    }
+                    HairlineDivider(startInset = 16.dp)
+                }
                 rule.conditions.forEachIndexed { i, condition ->
                     if (i > 0) HairlineDivider(startInset = 16.dp)
                     val (ic, col) = ComponentVisuals.of(condition)

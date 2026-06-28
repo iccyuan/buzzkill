@@ -6,10 +6,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.iccyuan.hush.data.model.NotificationLog
 import com.iccyuan.hush.data.model.Rule
 
-@Database(entities = [Rule::class, NotificationLog::class], version = 4, exportSchema = true)
+@Database(entities = [Rule::class, NotificationLog::class], version = 5, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun ruleDao(): RuleDao
@@ -24,7 +25,14 @@ abstract class AppDatabase : RoomDatabase() {
          * [Migration]，以避免丢失用户的规则与历史。当前 schema 已是 version 4，
          * 自该版本起的所有变更都应以迁移而非破坏性回退来处理。
          */
-        private val MIGRATIONS: Array<Migration> = emptyArray()
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 新增「条件组合方式」列（与/或），默认 ALL，与既有规则的旧行为一致。
+                db.execSQL("ALTER TABLE rules ADD COLUMN conditionLogic TEXT NOT NULL DEFAULT 'ALL'")
+            }
+        }
+
+        private val MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_4_5)
 
         fun get(context: Context): AppDatabase =
             instance ?: synchronized(this) {

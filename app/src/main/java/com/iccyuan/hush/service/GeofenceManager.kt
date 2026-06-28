@@ -15,6 +15,7 @@ import com.amap.api.location.DPoint
 import com.iccyuan.hush.data.HolidayProvider
 import com.iccyuan.hush.data.model.Condition
 import com.iccyuan.hush.data.model.DayType
+import com.iccyuan.hush.data.model.LogicMode
 import com.iccyuan.hush.data.model.Rule
 import com.iccyuan.hush.util.Logger
 import java.util.Calendar
@@ -84,8 +85,13 @@ object GeofenceManager {
         scheduleNextBoundary(app, located, now)
     }
 
-    /** 规则的全部时间/节假日条件此刻是否都成立（条件之间为 AND）。无此类条件视为始终成立。 */
+    /**
+     * 规则此刻是否「值得」注册围栏。仅当条件为 AND（全部满足）时才能凭时间/节假日提前排除——
+     * 因为那时时间不满足则整条规则必然不命中。若条件为 OR（任一满足），位置条件单独就能命中，
+     * 必须始终监控，不能因时间不满足而停掉定位。
+     */
     private fun ruleTimeEligible(rule: Rule, now: TimeCtx): Boolean {
+        if (rule.conditionLogic != LogicMode.ALL) return true
         rule.conditions.forEach { c ->
             when (c) {
                 is Condition.TimeCondition -> if (!inTimeWindow(c, now)) return false

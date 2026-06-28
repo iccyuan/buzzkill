@@ -23,6 +23,8 @@ data class Rule(
     val triggerLogic: LogicMode = LogicMode.ALL,
     val triggers: List<Trigger> = emptyList(),
     val conditions: List<Condition> = emptyList(),
+    /** 多个条件之间的组合方式：ALL = 全部满足（与），ANY = 任一满足（或）。 */
+    val conditionLogic: LogicMode = LogicMode.ALL,
     val actions: List<Action> = emptyList(),
     /** 若为 true，则一旦本规则触发，后续规则将不再被评估。 */
     val stopProcessing: Boolean = false,

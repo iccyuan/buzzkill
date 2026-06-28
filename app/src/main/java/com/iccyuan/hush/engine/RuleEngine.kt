@@ -127,8 +127,13 @@ class RuleEngine {
             ctx.field(NotificationField.CATEGORY).equals(PROMO_CATEGORY, ignoreCase = true)
     }
 
-    private fun conditionsHold(rule: Rule, ctx: MatchContext): Boolean =
-        rule.conditions.all { evalCondition(it, rule, ctx) }
+    private fun conditionsHold(rule: Rule, ctx: MatchContext): Boolean {
+        if (rule.conditions.isEmpty()) return true
+        return when (rule.conditionLogic) {
+            LogicMode.ALL -> rule.conditions.all { evalCondition(it, rule, ctx) }
+            LogicMode.ANY -> rule.conditions.any { evalCondition(it, rule, ctx) }
+        }
+    }
 
     private fun evalCondition(c: Condition, rule: Rule, ctx: MatchContext): Boolean = when (c) {
         is Condition.TimeCondition -> inTimeWindow(c, ctx)
