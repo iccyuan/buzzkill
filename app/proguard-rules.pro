@@ -20,3 +20,20 @@
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
+
+# 高德地图 / 定位 / 地理围栏 SDK：大量依赖反射与 JNI，必须整体 keep，否则 release（R8）
+# 构建会把这些类裁剪/混淆掉，导致打开地图/定位时崩溃。规则取自高德官方混淆配置。
+-keep class com.amap.api.**{*;}
+-keep class com.amap.api.maps.**{*;}
+-keep class com.amap.api.location.**{*;}
+-keep class com.amap.api.fence.**{*;}
+-keep class com.amap.api.services.**{*;}
+-keep class com.amap.api.maps2d.**{*;}
+-keep class com.amap.api.mapcore.**{*;}
+-keep class com.amap.api.mapcore2d.**{*;}
+-keep class com.amap.api.col.**{*;}
+-keep class com.autonavi.**{*;}
+-keep class com.loc.**{*;}
+-dontwarn com.amap.api.**
+-dontwarn com.autonavi.**
+-dontwarn com.loc.**

@@ -2,6 +2,8 @@ package com.iccyuan.hush.ui.editor
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -19,10 +21,15 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +37,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -42,13 +51,33 @@ import com.amap.api.maps.model.CircleOptions
 import com.amap.api.maps.model.LatLng
 import com.amap.api.maps.model.MarkerOptions
 import com.amap.api.maps.model.MyLocationStyle
+import com.iccyuan.hush.R
 import com.iccyuan.hush.ui.components.frostedOverlay
 import com.iccyuan.hush.ui.components.hazeSourceLayer
+import com.iccyuan.hush.ui.theme.IOSColors
 import dev.chrisbanes.haze.HazeState
 
+private val LOCATION_PERMS = arrayOf(
+    Manifest.permission.ACCESS_FINE_LOCATION,
+    Manifest.permission.ACCESS_COARSE_LOCATION,
+)
+
+/** 从 Compose 的 context（在 Dialog 里可能是各种 ContextWrapper）一路解包出真正的 Activity。 */
+private fun Context.findActivity(): Activity? {
+    var c: Context? = this
+    while (c is ContextWrapper) {
+        if (c is Activity) return c
+        c = c.baseContext
+    }
+    return null
+}
+
+private fun hasLocationPermission(c: Context): Boolean =
+    LOCATION_PERMS.any { ContextCompat.checkSelfPermission(c, it) == PackageManager.PERMISSION_GRANTED }
+
 /**
- * 内嵌在条件弹窗里的高德地图选点：开启「我的位置」蓝点，打开时自动定位到当前位置；
- * 右下角是自绘的放大/缩小 + 定位控件（替代高德默认控件，统一风格）。点地图落点回调 [onPick]。
+ * 内嵌在条件弹窗里的高德地图选点。未授予定位权限时**不创建地图**（高德在无权限时初始化定位
+ * 可能直接崩溃），改为显示授权入口；授权后再渲染地图。右下角自绘缩放/定位控件（毛玻璃）。
  */
 @Composable
 fun LocationMap(
@@ -59,21 +88,75 @@ fun LocationMap(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    var granted by remember { mutableStateOf(hasLocationPermission(context)) }
+
+    // 从系统权限弹窗返回时（ON_RESUME）重新检查授权状态，授予后即渲染地图。
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val obs = LifecycleEventObserver { _, e ->
+            if (e == Lifecycle.Event.ON_RESUME) granted = hasLocationPermission(context)
+        }
+        lifecycleOwner.lifecycle.addObserver(obs)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
+    }
+
+    // 打开时若未授权，自动弹一次系统权限申请（解包出 Activity 再申请，避免在 Dialog 里取不到）。
+    LaunchedEffect(Unit) {
+        if (!hasLocationPermission(context)) {
+            context.findActivity()?.let { ActivityCompat.requestPermissions(it, LOCATION_PERMS, 0) }
+        }
+    }
+
+    if (!granted) {
+        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(
+                Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    stringResource(R.string.map_need_location),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Box(
+                    Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(IOSColors.Blue)
+                        .clickable {
+                            context.findActivity()?.let { ActivityCompat.requestPermissions(it, LOCATION_PERMS, 0) }
+                        }
+                        .padding(horizontal = 20.dp, vertical = 10.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.map_grant_location),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White,
+                    )
+                }
+            }
+        }
+        return
+    }
+
+    LocationMapContent(lat, lng, radiusMeters, onPick, modifier)
+}
+
+@Composable
+private fun LocationMapContent(
+    lat: Double,
+    lng: Double,
+    radiusMeters: Int,
+    onPick: (Double, Double) -> Unit,
+    modifier: Modifier,
+) {
+    val context = LocalContext.current
     // 是否已经把镜头移到过当前位置（仅首次自动居中，避免反复抢镜头）。
     val centeredOnce = remember { booleanArrayOf(false) }
     // 用户是否已手动点图选点；以及打开时是否本就没有选点（新建条件）。
     val userPicked = remember { booleanArrayOf(false) }
     val initialUnset = remember { lat == 0.0 && lng == 0.0 }
-
-    // 直接经 Activity 申请定位权限——Compose 的 rememberLauncherForActivityResult 在 Dialog
-    // 子组合里取不到 ActivityResultRegistryOwner 会崩溃。
-    LaunchedEffect(Unit) {
-        val needed = listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-            .filter { ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED }
-        if (needed.isNotEmpty()) {
-            (context as? Activity)?.let { ActivityCompat.requestPermissions(it, needed.toTypedArray(), 0) }
-        }
-    }
 
     // 用 TextureMapView（而非默认的 GL SurfaceView 版 MapView）：它渲染进视图层级，
     // Haze 才能捕获并对其做毛玻璃模糊，给控件做出真实的高斯模糊背景。

@@ -271,6 +271,8 @@
     <string name="location_pick">Pick on map</string>
     <string name="location_pick_title">Tap to choose a spot</string>
     <string name="location_pick_hint">Tap the map to drop a pin</string>
+    <string name="map_need_location">Location permission is needed to show the map and pick a place.</string>
+    <string name="map_grant_location">Grant location permission</string>
     <string name="location_radius_m">Radius (meters)</string>
     <string name="location_must_inside">Inside the area (off = outside)</string>
     <string name="cat_cond_battery">Battery level</string>
