@@ -16,6 +16,17 @@ val keystoreProps = Properties().apply {
     }
 }
 
+// 高德地图 API Key：本地从 local.properties 读取（不入库）；CI 等环境通过
+// -PAMAP_KEY=... 或环境变量 AMAP_KEY 注入（见 .github/workflows/release.yml）。
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+val amapKey: String = localProps.getProperty("AMAP_KEY")
+    ?: (project.findProperty("AMAP_KEY") as String?)
+    ?: System.getenv("AMAP_KEY")
+    ?: ""
+
 android {
     namespace = "com.iccyuan.hush"
     compileSdk = 35
@@ -28,6 +39,9 @@ android {
         // 默认与当前迭代一致; CI 可通过 -PversionName=1.2.3 (由 git tag 推导) 覆盖
         versionName = (project.findProperty("versionName") as String?) ?: "0.1.8"
         vectorDrawables { useSupportLibrary = true }
+
+        // 高德 SDK 要求的 apikey 以 manifest meta-data 提供；用占位符注入，key 不写进版本控制。
+        manifestPlaceholders["AMAP_KEY"] = amapKey
 
         // 导出 Room schema，使后续版本的数据库迁移可被校验。
         ksp { arg("room.schemaLocation", "$projectDir/schemas") }

@@ -49,6 +49,8 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build release APK
+        env:
+          AMAP_KEY: ${{ secrets.AMAP_KEY }}
         run: ./gradlew assembleRelease -PversionName=${{ steps.version.outputs.name }}
 
       - name: Clean up secrets

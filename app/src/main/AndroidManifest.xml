@@ -25,6 +25,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Hush">
 
+        <!-- 高德地图/定位 SDK 的 API Key（由 build.gradle 的 manifestPlaceholders 注入，不入库）。 -->
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="${AMAP_KEY}" />
+
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
