@@ -122,7 +122,12 @@
     <string name="header_name">Name</string>
     <string name="header_value">Value</string>
     <string name="add_header">Add header</string>
-    <string name="webhook_get_hint">GET sends no body. To pass data, put it in the URL query, e.g. ?title={title}.</string>
+    <string name="query_params">Query params</string>
+    <string name="add_param">Add param</string>
+    <string name="body_type">Body type</string>
+    <string name="section_request">Request</string>
+    <string name="section_body">Body</string>
+    <string name="webhook_get_hint">GET sends no body. Use query params above to pass data.</string>
     <string name="minutes">Minutes</string>
     <string name="seconds">Seconds</string>
     <string name="delay_ms">Delay (ms)</string>

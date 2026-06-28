@@ -4,6 +4,7 @@ import com.iccyuan.hush.data.model.Action
 import com.iccyuan.hush.data.model.Condition
 import com.iccyuan.hush.data.model.DayType
 import com.iccyuan.hush.data.model.DeviceEventType
+import com.iccyuan.hush.data.model.HttpMethod
 import com.iccyuan.hush.data.model.LogicMode
 import com.iccyuan.hush.data.model.NotificationField
 import com.iccyuan.hush.data.model.Rule
@@ -279,9 +280,14 @@ class RuleEngine {
                     SideEffect.Webhook(
                         url = TemplateEngine.render(action.url, ctx),
                         method = action.method,
+                        params = action.queryParams
+                            .filter { it.name.isNotBlank() }
+                            .map { it.name.trim() to TemplateEngine.render(it.value, ctx) },
                         headers = action.headers
                             .filter { it.name.isNotBlank() }
                             .map { it.name.trim() to TemplateEngine.render(it.value, ctx) },
+                        // 仅 POST 携带请求体；GET 不发（contentType 为空即表示不写 body）。
+                        contentType = if (action.method == HttpMethod.POST) action.bodyType.contentType else "",
                         body = TemplateEngine.render(action.bodyTemplate, ctx),
                     )
                 )

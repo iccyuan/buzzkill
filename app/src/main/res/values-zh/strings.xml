@@ -122,7 +122,12 @@
     <string name="header_name">名称</string>
     <string name="header_value">值</string>
     <string name="add_header">添加请求头</string>
-    <string name="webhook_get_hint">GET 不发送请求体。要传数据请放进 URL 查询参数，例如 ?title={title}。</string>
+    <string name="query_params">查询参数</string>
+    <string name="add_param">添加参数</string>
+    <string name="body_type">请求体类型</string>
+    <string name="section_request">请求</string>
+    <string name="section_body">请求体</string>
+    <string name="webhook_get_hint">GET 不发送请求体。要传数据请用上方的查询参数。</string>
     <string name="minutes">分钟</string>
     <string name="seconds">秒</string>
     <string name="delay_ms">延迟（毫秒）</string>

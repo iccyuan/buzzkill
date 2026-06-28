@@ -329,7 +329,13 @@ private fun EditorOverlays(
 ) {
     TriggerEditorDialog(editingTrigger, onTriggerSave, onTriggerDelete, onTriggerDismiss)
     ConditionEditorDialog(editingCondition, onConditionSave, onConditionDelete, onConditionDismiss)
-    ActionEditorDialog(editingAction, onActionSave, onActionDelete, onActionDismiss)
+    // Webhook 内容较多，改用全屏二级界面；其余动作仍用对话框。
+    val webhook = editingAction as? Action.WebhookAction
+    if (webhook != null) {
+        WebhookEditorScreen(webhook, onActionSave, onActionDelete, onActionDismiss)
+    } else {
+        ActionEditorDialog(editingAction, onActionSave, onActionDelete, onActionDismiss)
+    }
 
     when (addKind) {
         AddKind.TRIGGER -> AddComponentSheet(

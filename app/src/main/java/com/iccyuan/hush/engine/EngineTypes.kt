@@ -59,7 +59,10 @@ sealed class SideEffect {
     data class Webhook(
         val url: String,
         val method: HttpMethod,
+        val params: List<Pair<String, String>>,
         val headers: List<Pair<String, String>>,
+        /** POST 请求体的 Content-Type；为空表示不带请求体。 */
+        val contentType: String,
         val body: String,
     ) : SideEffect()
     data class MuteApp(val pkg: String, val ruleId: Long) : SideEffect()

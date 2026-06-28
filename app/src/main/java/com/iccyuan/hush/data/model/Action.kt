@@ -138,8 +138,9 @@ sealed class Action {
 
     /**
      * 发起一个 HTTP 请求，例如发送到 webhook / 智能家居自动化。
-     * 类 Postman 形式：可自定义请求头（[headers]）；仅 POST 携带请求体（[bodyTemplate]）。
-     * [url]、各请求头的值、以及 [bodyTemplate] 均支持模板占位符。
+     * 类 Postman 形式：查询参数 [queryParams]（拼到 URL）、请求头 [headers]、
+     * 以及仅 POST 携带的请求体（[bodyType] 决定 Content-Type，[bodyTemplate] 为内容）。
+     * [url]、参数/请求头的值、以及 [bodyTemplate] 均支持模板占位符。
      */
     @Serializable
     @SerialName("webhook")
@@ -147,7 +148,9 @@ sealed class Action {
         override val id: String,
         val url: String = "",
         val method: HttpMethod = HttpMethod.POST,
-        val headers: List<HttpHeader> = emptyList(),
+        val queryParams: List<KeyValue> = emptyList(),
+        val headers: List<KeyValue> = emptyList(),
+        val bodyType: WebhookBodyType = WebhookBodyType.JSON,
         val bodyTemplate: String = "{\"app\":\"{app}\",\"title\":\"{title}\",\"text\":\"{text}\"}",
     ) : Action()
 
@@ -174,9 +177,18 @@ sealed class Action {
     ) : Action()
 }
 
-/** [Action.WebhookAction] 的一个自定义请求头。[value] 支持模板占位符。 */
+/** [Action.WebhookAction] 用到的键值对（请求头或查询参数）。[value] 支持模板占位符。 */
 @Serializable
-data class HttpHeader(
+data class KeyValue(
     val name: String = "",
     val value: String = "",
 )
+
+/** Webhook 请求体类型——决定 POST 的 Content-Type。 */
+@Serializable
+enum class WebhookBodyType(val contentType: String) {
+    JSON("application/json; charset=utf-8"),
+    TEXT("text/plain; charset=utf-8"),
+    FORM("application/x-www-form-urlencoded; charset=utf-8"),
+    XML("application/xml; charset=utf-8"),
+}
