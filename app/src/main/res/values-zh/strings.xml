@@ -413,8 +413,10 @@
     <string name="channel_keepalive">运行中</string>
     <string name="channel_keepalive_desc">保持后台常驻，避免通知监听被系统杀死；点按操作可把今天设为休息/工作</string>
     <string name="keepalive_today_auto">今日：%1$s（自动）</string>
-    <string name="keepalive_today_rest">今日：休息</string>
-    <string name="keepalive_today_work">今日：工作</string>
+    <string name="keepalive_today_rest">今日：休息（手动）</string>
+    <string name="keepalive_today_work">今日：工作（手动）</string>
+    <string name="keepalive_hint_auto">自动跟随节假日日历。点下方按钮可把今天手动设为休息 / 工作。</string>
+    <string name="keepalive_hint_manual">已手动设定。再次点击同一按钮可恢复为自动（跟随日历）。</string>
 
     <!-- 聚合动作 -->
     <string name="digest_window_minutes">时间窗（分钟）</string>

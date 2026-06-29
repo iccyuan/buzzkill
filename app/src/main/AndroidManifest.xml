@@ -96,6 +96,11 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- 零点刷新保活通知的「今日日期类型」。 -->
+        <receiver
+            android:name=".service.DayRefreshReceiver"
+            android:exported="false" />
+
         <!-- Re-applies foreground listener state after reboot. -->
         <receiver
             android:name=".service.BootReceiver"

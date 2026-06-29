@@ -415,6 +415,8 @@
     <string name="keepalive_today_auto">Today: %1$s (auto)</string>
     <string name="keepalive_today_rest">Today: rest</string>
     <string name="keepalive_today_work">Today: work</string>
+    <string name="keepalive_hint_auto">Auto-following the holiday calendar. Tap a button below to set today as rest or work.</string>
+    <string name="keepalive_hint_manual">Set manually. Tap the same button again to go back to auto (calendar).</string>
 
     <!-- Digest action -->
     <string name="digest_window_minutes">Window (minutes)</string>
