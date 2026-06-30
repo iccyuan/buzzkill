@@ -1,10 +1,15 @@
 package com.iccyuan.hush.ui.editor
 import com.iccyuan.hush.engine.TextMatcher
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Text
+import com.iccyuan.hush.ui.common.IntField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +64,7 @@ fun TriggerEditorDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 is Trigger.DeviceEvent -> DeviceEventFields(t) { draft = it }
+                is Trigger.LocationTrigger -> LocationTriggerFields(t) { draft = it }
             }
         }
         DialogActions(
@@ -67,6 +73,64 @@ fun TriggerEditorDialog(
             secondaryText = stringResource(if (onDelete != null) R.string.delete else R.string.cancel),
             onSecondary = { onDelete?.invoke() ?: onDismiss() },
         )
+    }
+}
+
+@Composable
+private fun LocationTriggerFields(
+    t: Trigger.LocationTrigger,
+    onChange: (Trigger.LocationTrigger) -> Unit,
+) {
+    val labels = com.iccyuan.hush.data.model.LocationEventType.entries.associateWith {
+        stringResource(
+            when (it) {
+                com.iccyuan.hush.data.model.LocationEventType.ENTER -> R.string.loc_event_enter
+                com.iccyuan.hush.data.model.LocationEventType.EXIT -> R.string.loc_event_exit
+            }
+        )
+    }
+    Column {
+        Text(
+            stringResource(R.string.location_trigger_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(8.dp))
+        EnumDropdown(
+            label = stringResource(R.string.location_event),
+            options = com.iccyuan.hush.data.model.LocationEventType.entries,
+            selected = t.event,
+            optionLabel = { labels.getValue(it) },
+            onSelected = { onChange(t.copy(event = it)) },
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            if (t.latitude != 0.0 || t.longitude != 0.0)
+                "%.5f, %.5f".format(t.latitude, t.longitude)
+            else stringResource(R.string.location_pick_hint),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(6.dp))
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(240.dp)
+                .clip(RoundedCornerShape(12.dp)),
+        ) {
+            LocationMap(
+                lat = t.latitude,
+                lng = t.longitude,
+                radiusMeters = t.radiusMeters,
+                onPick = { lat, lng ->
+                    onChange(t.copy(latitude = lat, longitude = lng, placeName = "%.5f, %.5f".format(lat, lng)))
+                },
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        IntField(stringResource(R.string.location_radius_m), t.radiusMeters) {
+            onChange(t.copy(radiusMeters = it.coerceIn(50, 5000)))
+        }
     }
 }
 

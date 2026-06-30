@@ -61,6 +61,7 @@ import com.iccyuan.hush.data.model.Condition
 import com.iccyuan.hush.data.model.GapOp
 import com.iccyuan.hush.data.model.LogicMode
 import com.iccyuan.hush.data.model.Trigger
+import com.iccyuan.hush.data.model.isEventDriven
 import com.iccyuan.hush.ui.common.EnumDropdown
 import com.iccyuan.hush.engine.SideEffect
 import com.iccyuan.hush.ui.Localize
@@ -161,24 +162,7 @@ fun RuleEditorScreen(
                 }
             }
 
-            // 应用
-            InsetGroupedSection(header = stringResource(R.string.section_apps)) {
-                if (rule.appPackages.isEmpty()) {
-                    IOSRow(
-                        title = stringResource(R.string.applies_all_apps),
-                        icon = Icons.Filled.Apps,
-                        iconColor = IOSColors.Blue,
-                        onClick = { showAppPicker = true },
-                    )
-                } else {
-                    SelectedAppsChips(
-                        packages = rule.appPackages,
-                        onClick = { showAppPicker = true },
-                    )
-                }
-            }
-
-            // 触发器
+            // 触发器（置顶：它决定规则的性质）
             InsetGroupedSection(
                 header = stringResource(R.string.section_triggers),
                 footer = if (rule.triggers.isEmpty()) stringResource(R.string.no_triggers_hint) else null,
@@ -199,6 +183,25 @@ fun RuleEditorScreen(
                 HairlineDivider(startInset = 16.dp)
                 AddRow(stringResource(R.string.add_trigger), Icons.Filled.FilterAlt, IOSColors.Blue) {
                     addKind = AddKind.TRIGGER
+                }
+            }
+
+            // 应用：仅对「基于通知」的规则有意义；事件驱动规则（Wi-Fi / 位置）不挑应用，隐藏此区。
+            if (!rule.isEventDriven) {
+                InsetGroupedSection(header = stringResource(R.string.section_apps)) {
+                    if (rule.appPackages.isEmpty()) {
+                        IOSRow(
+                            title = stringResource(R.string.applies_all_apps),
+                            icon = Icons.Filled.Apps,
+                            iconColor = IOSColors.Blue,
+                            onClick = { showAppPicker = true },
+                        )
+                    } else {
+                        SelectedAppsChips(
+                            packages = rule.appPackages,
+                            onClick = { showAppPicker = true },
+                        )
+                    }
                 }
             }
 
@@ -330,12 +333,16 @@ private fun EditorOverlays(
 ) {
     TriggerEditorDialog(editingTrigger, onTriggerSave, onTriggerDelete, onTriggerDismiss)
     ConditionEditorDialog(editingCondition, onConditionSave, onConditionDelete, onConditionDismiss)
-    // Webhook 内容较多，改用全屏二级界面；其余动作仍用对话框。
-    val webhook = editingAction as? Action.WebhookAction
-    if (webhook != null) {
-        WebhookEditorScreen(webhook, onActionSave, onActionDelete, onActionDismiss)
-    } else {
-        ActionEditorDialog(editingAction, onActionSave, onActionDelete, onActionDismiss)
+    // 内容较多的动作改用全屏二级界面；其余动作仍用对话框。
+    when (editingAction) {
+        is Action.WebhookAction ->
+            WebhookEditorScreen(editingAction, onActionSave, onActionDelete, onActionDismiss)
+        is Action.LaunchAppAction ->
+            LaunchAppEditorScreen(editingAction, onActionSave, onActionDelete, onActionDismiss)
+        is Action.RunMacroAction ->
+            MacroEditorScreen(editingAction, onActionSave, onActionDelete, onActionDismiss)
+        else ->
+            ActionEditorDialog(editingAction, onActionSave, onActionDelete, onActionDismiss)
     }
 
     when (addKind) {
@@ -558,6 +565,8 @@ private fun effectName(effect: SideEffect): String? = when (effect) {
     is SideEffect.MuteApp -> stringResource(R.string.cat_act_mute)
     is SideEffect.Digest -> stringResource(R.string.cat_act_digest)
     is SideEffect.Danmaku -> stringResource(R.string.danmaku_switch)
+    is SideEffect.LaunchApp -> stringResource(R.string.cat_act_launch)
+    is SideEffect.RunMacro -> stringResource(R.string.cat_act_macro)
 }
 
 /** 已选应用以图标 + 名称标签的形式展示；点击任意位置都会打开选择器。 */

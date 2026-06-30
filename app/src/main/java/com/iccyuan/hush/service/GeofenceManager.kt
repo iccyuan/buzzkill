@@ -17,6 +17,7 @@ import com.iccyuan.hush.data.model.Condition
 import com.iccyuan.hush.data.model.DayType
 import com.iccyuan.hush.data.model.GapOp
 import com.iccyuan.hush.data.model.Rule
+import com.iccyuan.hush.data.model.Trigger
 import com.iccyuan.hush.util.Logger
 import java.util.Calendar
 
@@ -37,6 +38,12 @@ object GeofenceManager {
     private var registeredKeys: Set<String> = emptySet()
     private var lastRules: List<Rule> = emptyList()
 
+    /** 穿越围栏（进入/离开）那一刻的回调，由 [HushListenerService] 设置以触发位置事件规则。 */
+    @Volatile
+    var crossingListener: ((key: String, entered: Boolean) -> Unit)? = null
+
+    private data class FenceSpec(val lat: Double, val lng: Double, val radius: Int, val key: String)
+
     /** 缓存最新规则并按当前时间重新评估需要注册的围栏。 */
     @Synchronized
     fun sync(context: Context, rules: List<Rule>) {
@@ -49,40 +56,51 @@ object GeofenceManager {
     private fun resync(app: Context) = reevaluate(app)
 
     private fun reevaluate(app: Context) {
-        // 任意规则用到的位置条件（坐标有效）。
-        val located = lastRules.filter { rule ->
+        // 条件用到的位置（受时间/节假日门控——不到点就不注册、不耗电定位）。
+        val condRules = lastRules.filter { rule ->
             rule.conditions.any { it is Condition.LocationCondition && (it.latitude != 0.0 || it.longitude != 0.0) }
         }
-        if (located.isEmpty()) {
+        // 触发器用到的位置（围栏本身即触发条件，始终注册）。
+        val trigRules = lastRules.filter { rule ->
+            rule.triggers.any { it is Trigger.LocationTrigger && (it.latitude != 0.0 || it.longitude != 0.0) }
+        }
+        if (condRules.isEmpty() && trigRules.isEmpty()) {
             teardown(app)
             registeredKeys = emptySet()
             GeofenceState.reset()
             return
         }
 
-        // 仅保留「此刻时间/节假日条件成立」的规则的围栏——其余规则现在不可能命中，无需耗电定位。
         val now = TimeCtx.now()
-        val eligible = located
+        // 条件围栏：仅「此刻时间/节假日条件成立」的规则才注册。
+        val condFences = condRules
             .filter { ruleTimeEligible(it, now) }
             .flatMap { it.conditions.filterIsInstance<Condition.LocationCondition>() }
             .filter { it.latitude != 0.0 || it.longitude != 0.0 }
-            .distinctBy { it.fenceKey() }
-        val keys = eligible.map { it.fenceKey() }.toSet()
+            .map { FenceSpec(it.latitude, it.longitude, it.radiusMeters, it.fenceKey()) }
+        // 触发器围栏：始终注册。
+        val trigFences = trigRules
+            .flatMap { it.triggers.filterIsInstance<Trigger.LocationTrigger>() }
+            .filter { it.latitude != 0.0 || it.longitude != 0.0 }
+            .map { FenceSpec(it.latitude, it.longitude, it.radiusMeters, it.fenceKey()) }
+        val fences = (condFences + trigFences).distinctBy { it.key }
+        val keys = fences.map { it.key }.toSet()
 
         val c = ensureSetup(app)
         if (c != null && keys != registeredKeys) {
             registeredKeys = keys
             runCatching {
                 c.removeGeoFence()
-                eligible.forEach { f ->
-                    c.addGeoFence(DPoint(f.latitude, f.longitude), f.radiusMeters.toFloat(), f.fenceKey())
+                fences.forEach { f ->
+                    c.addGeoFence(DPoint(f.lat, f.lng), f.radius.toFloat(), f.key)
                 }
                 // 不再监控的围栏，清掉其「在内」缓存，避免残留误判。
                 GeofenceState.retainOnly(keys)
             }.onFailure { Logger.w("geofence sync failed: ${it.message}") }
         }
 
-        scheduleNextBoundary(app, located, now)
+        // 仅条件围栏受时间门控、需在边界重评；触发器围栏长期有效。
+        scheduleNextBoundary(app, condRules, now)
     }
 
     /**
@@ -176,8 +194,16 @@ object GeofenceManager {
                             val b = intent.extras ?: return
                             val key = b.getString(GeoFence.BUNDLE_KEY_CUSTOMID) ?: return
                             when (b.getInt(GeoFence.BUNDLE_KEY_FENCESTATUS)) {
-                                GeoFence.STATUS_IN, GeoFence.STATUS_STAYED -> GeofenceState.enter(key)
-                                GeoFence.STATUS_OUT -> GeofenceState.exit(key)
+                                // 「进入那一刻」用 STATUS_IN；STATUS_STAYED 仅维持在内状态，不再当作进入事件。
+                                GeoFence.STATUS_IN -> {
+                                    GeofenceState.enter(key)
+                                    crossingListener?.invoke(key, true)
+                                }
+                                GeoFence.STATUS_STAYED -> GeofenceState.enter(key)
+                                GeoFence.STATUS_OUT -> {
+                                    GeofenceState.exit(key)
+                                    crossingListener?.invoke(key, false)
+                                }
                             }
                         }
                     }

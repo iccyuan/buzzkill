@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Subtitles
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
@@ -188,6 +189,36 @@ fun SettingsScreen(
                         onClick = {
                             context.startActivity(
                                 DanmakuController.overlaySettingsIntent(context)
+                            )
+                        },
+                    )
+                }
+            }
+
+            // 自动操作（无障碍）：打卡宏的录制/回放依赖它。
+            InsetGroupedSection(
+                header = stringResource(R.string.settings_accessibility),
+                footer = stringResource(R.string.settings_accessibility_desc),
+            ) {
+                val accOn = com.iccyuan.hush.service.HushAccessibilityService.instance != null
+                IOSRow(
+                    title = stringResource(R.string.settings_accessibility),
+                    icon = Icons.Filled.TouchApp,
+                    iconColor = IOSColors.Purple,
+                    trailing = {
+                        ConnectionStatus(
+                            if (accOn) stringResource(R.string.status_enabled) else stringResource(R.string.status_disabled),
+                            if (accOn) IOSColors.Green else IOSColors.Gray,
+                        )
+                    },
+                )
+                HairlineDivider(startInset = 16.dp)
+                Column(Modifier.padding(16.dp)) {
+                    IOSTintedButton(
+                        text = stringResource(R.string.open_accessibility_settings),
+                        onClick = {
+                            context.startActivity(
+                                android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
                             )
                         },
                     )

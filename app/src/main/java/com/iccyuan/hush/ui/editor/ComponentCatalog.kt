@@ -17,8 +17,10 @@ import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.HourglassBottom
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.Launch
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.NotificationsOff
@@ -78,6 +80,9 @@ object ComponentCatalog {
         },
         CatalogEntry(R.string.cat_trig_event, R.string.cat_trig_event_desc, Icons.Filled.Sensors, Purple) {
             Trigger.DeviceEvent(Ids.next())
+        },
+        CatalogEntry(R.string.cat_trig_location, R.string.cat_trig_location_desc, Icons.Filled.LocationOn, Red) {
+            Trigger.LocationTrigger(Ids.next())
         },
     )
 
@@ -162,6 +167,12 @@ object ComponentCatalog {
         CatalogEntry(R.string.cat_act_webhook, R.string.cat_act_webhook_desc, Icons.Filled.Cloud, Blue) {
             Action.WebhookAction(Ids.next())
         },
+        CatalogEntry(R.string.cat_act_launch, R.string.cat_act_launch_desc, Icons.Filled.Launch, Blue) {
+            Action.LaunchAppAction(Ids.next())
+        },
+        CatalogEntry(R.string.cat_act_macro, R.string.cat_act_macro_desc, Icons.Filled.TouchApp, Purple) {
+            Action.RunMacroAction(Ids.next())
+        },
     )
 }
 
@@ -173,6 +184,7 @@ object ComponentVisuals {
         is Trigger.HasReplyTrigger -> Icons.AutoMirrored.Filled.Reply to Teal
         is Trigger.PromoTrigger -> Icons.Filled.Campaign to Orange
         is Trigger.DeviceEvent -> Icons.Filled.Sensors to Purple
+        is Trigger.LocationTrigger -> Icons.Filled.LocationOn to Red
     }
 
     fun of(c: Condition): Pair<ImageVector, Color> = when (c) {
@@ -204,5 +216,7 @@ object ComponentVisuals {
         is Action.WebhookAction -> Icons.Filled.Cloud to Blue
         is Action.MuteAppAction -> Icons.Filled.NotificationsOff to Red
         is Action.DigestAction -> Icons.Filled.Inbox to Indigo
+        is Action.LaunchAppAction -> Icons.Filled.Launch to Blue
+        is Action.RunMacroAction -> Icons.Filled.TouchApp to Purple
     }
 }

@@ -5,6 +5,7 @@ import com.iccyuan.hush.data.HolidayProvider
 import com.iccyuan.hush.data.RuntimeStateStore
 import com.iccyuan.hush.service.ChannelManager
 import com.iccyuan.hush.service.KeepAliveService
+import com.iccyuan.hush.service.ListenerWatchdog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,6 +19,8 @@ class HushApp : Application() {
 
         // 前台保活：把进程提升到前台服务优先级，降低监听器被省电策略杀死的概率。
         KeepAliveService.start(this)
+        // 周期性看门狗：被杀后由闹钟唤醒，自动重连监听器、重启保活。
+        ListenerWatchdog.schedule(this)
 
         // 恢复持久化的运行时状态（冷却 / 静音 / 变量）。
         RuntimeStateStore.init(this)

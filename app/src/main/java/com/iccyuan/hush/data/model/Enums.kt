@@ -102,6 +102,10 @@ enum class DeviceEventType {
     WIFI_DISCONNECTED,
 }
 
+/** [Trigger.LocationTrigger] 的方向：进入或离开地理围栏的那一刻。 */
+@Serializable
+enum class LocationEventType { ENTER, EXIT }
+
 /**
  * 用于节假日条件的日历日期分类。由内置的中国法定节假日日历
  * 加上工作日/周末的兜底规则决定。

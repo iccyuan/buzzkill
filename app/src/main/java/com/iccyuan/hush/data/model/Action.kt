@@ -167,6 +167,35 @@ sealed class Action {
         val windowMinutes: Int = 5,
         val template: String = "{title} {text}",
     ) : Action()
+
+    /**
+     * 打开指定应用，或其某个可调用的 Activity（页面）。[activityName] 为空时用应用的
+     * 默认启动 Intent；非空时以显式 ComponentName 启动（仅对 exported 的页面有效）。
+     */
+    @Serializable
+    @SerialName("launchApp")
+    data class LaunchAppAction(
+        override val id: String,
+        val packageName: String = "",
+        val activityName: String = "",
+        /** 展示用：应用名（+ 页面名），随选择写入，避免列表里再查 PackageManager。 */
+        val label: String = "",
+    ) : Action()
+
+    /**
+     * 运行一段录制好的「打卡宏」：规则命中后由无障碍服务用手势回放 [steps]（点击/滑动/等待）。
+     * [screenWidth]/[screenHeight] 为录制时的屏幕尺寸，回放时据此缩放坐标。
+     */
+    @Serializable
+    @SerialName("macro")
+    data class RunMacroAction(
+        override val id: String,
+        val name: String = "",
+        val steps: List<MacroStep> = emptyList(),
+        val screenWidth: Int = 0,
+        val screenHeight: Int = 0,
+        val repeat: Int = 1,
+    ) : Action()
 }
 
 /** [Action.WebhookAction] 用到的键值对（请求头或查询参数）。[value] 支持模板占位符。 */

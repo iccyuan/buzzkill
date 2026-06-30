@@ -131,6 +131,25 @@ class HushListenerService : NotificationListenerService() {
         }
     }
 
+    /** 进入/离开某围栏的那一刻：评估位置事件规则并执行其副作用。 */
+    private fun onGeofenceEvent(key: String, entered: Boolean) {
+        if (!masterEnabled) return
+        Logger.i("geofence event: $key entered=$entered")
+        scope.launch {
+            try {
+                val device = DeviceState.sample(this@HushListenerService, needsHeadphones, true, needsLocation)
+                val appName = NotificationFields.appLabel(this@HushListenerService, packageName)
+                val decision = engine.evaluateLocationEvent(key, entered, activeRules, device, packageName, appName)
+                if (decision.matched) {
+                    sideEffects.execute(decision.sideEffects)
+                    recordFires(decision)
+                }
+            } catch (t: Throwable) {
+                Logger.e("geofence event failed", t)
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         repository = RuleRepository.get(this)
@@ -143,6 +162,8 @@ class HushListenerService : NotificationListenerService() {
         channels.ensureBaseChannels()
         // 恢复并持久化运行时状态（冷却 / 静音 / 变量），使其跨进程重启依然有效。
         RuntimeStateStore.init(this)
+        // 围栏穿越的那一刻 → 触发位置事件规则。
+        GeofenceManager.crossingListener = { key, entered -> onGeofenceEvent(key, entered) }
 
         scope.launch {
             repository.observeAll().collectLatest {
@@ -253,6 +274,8 @@ class HushListenerService : NotificationListenerService() {
         val extras = sbn.notification.extras
         val title = extras.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString().orEmpty()
         val text = extras.getCharSequence(android.app.Notification.EXTRA_TEXT)?.toString().orEmpty()
+        // 空白通知（既无标题也无正文）无展示价值，不记入历史。
+        if (title.isBlank() && text.isBlank()) return
         val outcome = when {
             decision.discard -> NotificationLog.OUTCOME_DISCARDED
             decision.needsRepost -> NotificationLog.OUTCOME_MODIFIED
@@ -340,6 +363,7 @@ class HushListenerService : NotificationListenerService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        GeofenceManager.crossingListener = null
         wifiCallback?.let { cb ->
             runCatching { getSystemService(ConnectivityManager::class.java)?.unregisterNetworkCallback(cb) }
         }

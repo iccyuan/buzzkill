@@ -177,8 +177,10 @@ private fun ActionFields(action: Action, onChange: (Action) -> Unit) {
             }
             TemplateHint()
         }
-        // Webhook 在独立的全屏二级界面编辑（WebhookEditorScreen），不走此对话框。
+        // Webhook / 打开应用 / 打卡宏 都在独立的全屏二级界面编辑，不走此对话框。
         is Action.WebhookAction -> Unit
+        is Action.LaunchAppAction -> Unit
+        is Action.RunMacroAction -> Unit
         is Action.MuteAppAction -> Text(stringResource(R.string.mute_explain))
         is Action.DigestAction -> Column {
             IntField(stringResource(R.string.digest_window_minutes), a.windowMinutes) {
@@ -222,5 +224,7 @@ private fun actionTitle(action: Action): String = stringResource(
         is Action.WebhookAction -> R.string.cat_act_webhook
         is Action.MuteAppAction -> R.string.cat_act_mute
         is Action.DigestAction -> R.string.cat_act_digest
+        is Action.LaunchAppAction -> R.string.cat_act_launch
+        is Action.RunMacroAction -> R.string.cat_act_macro
     }
 )

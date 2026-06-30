@@ -89,7 +89,9 @@ fun HistoryScreen(
     var selectedApp by remember { mutableStateOf<String?>(null) }
 
     val filtered = remember(logs, selectedApp) {
-        if (selectedApp == null) logs else logs.filter { it.packageName == selectedApp }
+        // 隐藏空白通知（既无标题也无正文）——它们会渲染为空行；同时兼顾历史里旧的空白记录。
+        logs.filter { it.title.isNotBlank() || it.text.isNotBlank() }
+            .let { list -> if (selectedApp == null) list else list.filter { it.packageName == selectedApp } }
     }
     // 日志中出现过的应用，按出现频率从高到低排列（这样即使应用很多，
     // 常用应用也会排在可横向滚动的过滤行靠前的位置）。

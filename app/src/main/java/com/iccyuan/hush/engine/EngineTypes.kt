@@ -72,6 +72,15 @@ sealed class SideEffect {
         val line: String,
         val windowMinutes: Int,
     ) : SideEffect()
+    /** 打开应用 / 指定 Activity（[activity] 为空则用默认启动 Intent）。 */
+    data class LaunchApp(val pkg: String, val activity: String) : SideEffect()
+    /** 用无障碍服务回放一段录制好的手势宏。 */
+    data class RunMacro(
+        val steps: List<com.iccyuan.hush.data.model.MacroStep>,
+        val screenWidth: Int,
+        val screenHeight: Int,
+        val repeat: Int,
+    ) : SideEffect()
 }
 
 /** 对重新发布通知的提醒行为所期望的更改。 */

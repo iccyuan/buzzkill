@@ -13,5 +13,7 @@ class BootReceiver : BroadcastReceiver() {
         ChannelManager(context).ensureBaseChannels()
         // 开机后立即拉起前台保活服务（开机广播可豁免后台启动限制）。
         KeepAliveService.start(context)
+        // 重新安排监听器看门狗（闹钟在重启后会丢失，需重建）。
+        ListenerWatchdog.schedule(context)
     }
 }

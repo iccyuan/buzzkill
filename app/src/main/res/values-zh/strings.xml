@@ -446,4 +446,68 @@
     <string name="insights_top_rules">命中最多的规则</string>
     <string name="insights_fires">命中 %d 次</string>
     <string name="insights_none">暂无数据</string>
+
+    <!-- 位置触发器 (F1) -->
+    <string name="cat_trig_location">位置</string>
+    <string name="cat_trig_location_desc">进入或离开某地点的那一刹那触发</string>
+    <string name="location_trigger_hint">进入或离开此地点的那一刹那执行规则的动作，无需通知。</string>
+    <string name="location_event">事件</string>
+    <string name="sum_loc_enter">进入 %s</string>
+    <string name="sum_loc_exit">离开 %s</string>
+    <string name="loc_event_enter">进入</string>
+    <string name="loc_event_exit">离开</string>
+
+    <!-- 打开应用 / 页面 动作 (F3) -->
+    <string name="cat_act_launch">打开应用</string>
+    <string name="cat_act_launch_desc">打开某个应用或它的某个页面</string>
+    <string name="sum_act_launch">打开 %s</string>
+    <string name="launch_app_unset">未选择应用</string>
+    <string name="launch_app_section">应用</string>
+    <string name="launch_app_choose">选择应用</string>
+    <string name="launch_app_failed">无法打开该应用</string>
+    <string name="launch_activity_section">页面</string>
+    <string name="launch_activity_hint">可选。保持「默认页面」即只打开应用。</string>
+    <string name="launch_default_page">打开应用（默认页面）</string>
+    <string name="launch_activity_only_callable">仅列出可以直接调用的页面。</string>
+    <string name="launch_activity_none">该应用没有可调用的页面</string>
+    <string name="loading">加载中…</string>
+
+    <!-- 打卡宏动作 (F2) -->
+    <string name="cat_act_macro">自动点击（宏）</string>
+    <string name="cat_act_macro_desc">回放录制的点击，如自动打卡</string>
+    <string name="sum_act_macro">自动点击 · %d 步</string>
+    <string name="macro_record_section">录制</string>
+    <string name="macro_record_hint">点「录制」后切到目标应用，用悬浮球开始/停止。会捕获你的真实点击并回放。</string>
+    <string name="macro_record">录制</string>
+    <string name="macro_rerecord">重新录制</string>
+    <string name="macro_recording">录制中… 在悬浮球上停止。</string>
+    <string name="macro_record_started">已开始录制 — 请切到目标应用。</string>
+    <string name="macro_need_overlay">请先授予悬浮窗权限。</string>
+    <string name="macro_accessibility_off">请先开启「静界」的无障碍服务。</string>
+    <string name="macro_steps_section">步骤</string>
+    <string name="macro_no_steps">还没有步骤</string>
+    <string name="macro_add_wait">添加等待</string>
+    <string name="macro_repeat">重复次数</string>
+    <string name="macro_test_run">试运行</string>
+    <string name="macro_test_hint">试运行会立即回放该宏（需开启无障碍）。</string>
+    <string name="macro_step_tap">点击 (%1$d, %2$d)</string>
+    <string name="macro_step_swipe">滑动 (%1$d, %2$d) → (%3$d, %4$d)</string>
+    <string name="macro_step_wait">等待</string>
+    <string name="macro_step_delay">执行前等待 %d 毫秒</string>
+    <string name="macro_step_delay_label">执行前等待（毫秒）</string>
+    <string name="macro_edit_delay">延时</string>
+    <string name="macro_move_up">上移</string>
+    <string name="macro_move_down">下移</string>
+    <string name="macro_rec_start">● 开始</string>
+    <string name="macro_rec_stop">■ 停止</string>
+    <string name="macro_rec_done">✓ 完成</string>
+    <string name="macro_accessibility_label">静界 自动点击</string>
+    <string name="macro_accessibility_desc">允许静界录制并回放点击，用于打卡之类的自动化。</string>
+
+    <!-- 无障碍设置卡片 -->
+    <string name="settings_accessibility">无障碍（自动点击）</string>
+    <string name="settings_accessibility_desc">录制和回放打卡宏需要它。</string>
+    <string name="open_accessibility_settings">打开无障碍设置</string>
+    <string name="status_enabled">已开启</string>
+    <string name="status_disabled">未开启</string>
 </resources>

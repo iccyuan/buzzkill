@@ -44,9 +44,41 @@ class SideEffectExecutor(
                     DanmakuController.show(context, effect.text, effect.durationMs)
                 is SideEffect.Digest ->
                     DigestController.add(context, effect.pkg, effect.appName, effect.line, effect.windowMinutes)
+                is SideEffect.LaunchApp -> launchApp(effect.pkg, effect.activity)
+                is SideEffect.RunMacro -> runMacro(effect)
                 is SideEffect.AutoReply -> Unit // 由服务结合 sbn 处理
             }
         }
+    }
+
+    /** 「打开应用 / 页面」动作：有 activity 用显式 ComponentName，否则用默认启动 Intent。 */
+    private fun launchApp(pkg: String, activity: String) {
+        if (pkg.isBlank()) return
+        val intent = if (activity.isNotBlank()) {
+            Intent().setClassName(pkg, activity)
+        } else {
+            context.packageManager.getLaunchIntentForPackage(pkg)
+        }
+        if (intent == null) {
+            showToast(context.getString(R.string.launch_app_failed))
+            return
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure {
+                Logger.w("launchApp $pkg/$activity failed: ${it.message}", it)
+                showToast(context.getString(R.string.launch_app_failed))
+            }
+    }
+
+    /** 「运行打卡宏」动作：交给无障碍服务回放；未开启则提示去开启。 */
+    private fun runMacro(effect: SideEffect.RunMacro) {
+        val svc = HushAccessibilityService.instance
+        if (svc == null) {
+            showToast(context.getString(R.string.macro_accessibility_off))
+            return
+        }
+        svc.playMacro(effect.steps, effect.screenWidth, effect.screenHeight, effect.repeat)
     }
 
     @SuppressLint("WakelockTimeout")

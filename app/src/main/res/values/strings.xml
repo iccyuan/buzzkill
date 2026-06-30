@@ -446,4 +446,68 @@
     <string name="insights_top_rules">Top rules</string>
     <string name="insights_fires">%d fires</string>
     <string name="insights_none">No data yet</string>
+
+    <!-- Location trigger (F1) -->
+    <string name="cat_trig_location">Location</string>
+    <string name="cat_trig_location_desc">Fire the moment you enter or leave a place</string>
+    <string name="location_trigger_hint">Fires the rule\'s actions the instant you enter or leave this place — no notification needed.</string>
+    <string name="location_event">Event</string>
+    <string name="sum_loc_enter">Entering %s</string>
+    <string name="sum_loc_exit">Leaving %s</string>
+    <string name="loc_event_enter">Entering</string>
+    <string name="loc_event_exit">Leaving</string>
+
+    <!-- Launch app / activity action (F3) -->
+    <string name="cat_act_launch">Open app</string>
+    <string name="cat_act_launch_desc">Open an app or one of its pages</string>
+    <string name="sum_act_launch">Open %s</string>
+    <string name="launch_app_unset">app not set</string>
+    <string name="launch_app_section">App</string>
+    <string name="launch_app_choose">Choose app</string>
+    <string name="launch_app_failed">Couldn\'t open the app</string>
+    <string name="launch_activity_section">Page</string>
+    <string name="launch_activity_hint">Optional. Leave as the default page to just open the app.</string>
+    <string name="launch_default_page">Open app (default page)</string>
+    <string name="launch_activity_only_callable">Only pages that can be opened directly are listed.</string>
+    <string name="launch_activity_none">No openable pages in this app</string>
+    <string name="loading">Loading…</string>
+
+    <!-- Macro action (F2) -->
+    <string name="cat_act_macro">Auto tap (macro)</string>
+    <string name="cat_act_macro_desc">Replay recorded taps, e.g. to clock in</string>
+    <string name="sum_act_macro">Auto tap · %d steps</string>
+    <string name="macro_record_section">Record</string>
+    <string name="macro_record_hint">Tap Record, switch to the target app, then use the floating bubble to start/stop. Your real taps are captured and replayed.</string>
+    <string name="macro_record">Record</string>
+    <string name="macro_rerecord">Re-record</string>
+    <string name="macro_recording">Recording… stop on the floating bubble.</string>
+    <string name="macro_record_started">Recording started — switch to the target app.</string>
+    <string name="macro_need_overlay">Please grant the floating-window permission.</string>
+    <string name="macro_accessibility_off">Enable accessibility for Hush first.</string>
+    <string name="macro_steps_section">Steps</string>
+    <string name="macro_no_steps">No steps yet</string>
+    <string name="macro_add_wait">Add wait</string>
+    <string name="macro_repeat">Repeat</string>
+    <string name="macro_test_run">Test run</string>
+    <string name="macro_test_hint">Test run plays the macro now (needs accessibility on).</string>
+    <string name="macro_step_tap">Tap (%1$d, %2$d)</string>
+    <string name="macro_step_swipe">Swipe (%1$d, %2$d) → (%3$d, %4$d)</string>
+    <string name="macro_step_wait">Wait</string>
+    <string name="macro_step_delay">wait %d ms before</string>
+    <string name="macro_step_delay_label">Wait before (ms)</string>
+    <string name="macro_edit_delay">Delay</string>
+    <string name="macro_move_up">Move up</string>
+    <string name="macro_move_down">Move down</string>
+    <string name="macro_rec_start">● Start</string>
+    <string name="macro_rec_stop">■ Stop</string>
+    <string name="macro_rec_done">✓ Done</string>
+    <string name="macro_accessibility_label">Hush auto tap</string>
+    <string name="macro_accessibility_desc">Lets Hush record and replay taps for clock-in style automation.</string>
+
+    <!-- Accessibility settings card -->
+    <string name="settings_accessibility">Accessibility (auto tap)</string>
+    <string name="settings_accessibility_desc">Required to record and replay clock-in macros.</string>
+    <string name="open_accessibility_settings">Open accessibility settings</string>
+    <string name="status_enabled">On</string>
+    <string name="status_disabled">Off</string>
 </resources>

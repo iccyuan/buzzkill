@@ -109,12 +109,22 @@ object Localize {
             stringResource(if (t.mustHaveReply) R.string.sum_reply_yes else R.string.sum_reply_no)
         is Trigger.PromoTrigger -> stringResource(R.string.sum_promo)
         is Trigger.DeviceEvent -> stringResource(eventRes(t.event))
+        is Trigger.LocationTrigger -> {
+            val place = t.placeName.ifBlank { stringResource(R.string.location_unset) }
+            stringResource(locationEventRes(t.event), place)
+        }
     }
 
     @StringRes
     fun eventRes(e: DeviceEventType): Int = when (e) {
         DeviceEventType.WIFI_CONNECTED -> R.string.event_wifi_connected
         DeviceEventType.WIFI_DISCONNECTED -> R.string.event_wifi_disconnected
+    }
+
+    @StringRes
+    fun locationEventRes(e: com.iccyuan.hush.data.model.LocationEventType): Int = when (e) {
+        com.iccyuan.hush.data.model.LocationEventType.ENTER -> R.string.sum_loc_enter
+        com.iccyuan.hush.data.model.LocationEventType.EXIT -> R.string.sum_loc_exit
     }
 
     @Composable
@@ -178,5 +188,10 @@ object Localize {
         is Action.WebhookAction -> stringResource(R.string.sum_act_webhook, a.method.name, a.url)
         is Action.MuteAppAction -> stringResource(R.string.sum_act_mute)
         is Action.DigestAction -> stringResource(R.string.sum_act_digest, a.windowMinutes)
+        is Action.LaunchAppAction -> {
+            val target = a.label.ifBlank { a.packageName.ifBlank { stringResource(R.string.launch_app_unset) } }
+            stringResource(R.string.sum_act_launch, target)
+        }
+        is Action.RunMacroAction -> stringResource(R.string.sum_act_macro, a.steps.size)
     }
 }

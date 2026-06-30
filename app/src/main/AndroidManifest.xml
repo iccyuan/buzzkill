@@ -85,6 +85,20 @@
         <!-- 高德定位/地理围栏后台服务。 -->
         <service android:name="com.amap.api.location.APSService" />
 
+        <!-- 无障碍服务：录制/回放打卡宏（模拟点击）。用户需在系统设置中手动开启。 -->
+        <service
+            android:name=".service.HushAccessibilityService"
+            android:exported="true"
+            android:label="@string/macro_accessibility_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
         <!-- Exposes the downloaded update APK to the system installer. -->
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -99,6 +113,11 @@
         <!-- 零点刷新保活通知的「今日日期类型」。 -->
         <receiver
             android:name=".service.DayRefreshReceiver"
+            android:exported="false" />
+
+        <!-- 监听器看门狗闹钟：周期性自动重连被省电策略杀死的通知监听。 -->
+        <receiver
+            android:name=".service.ListenerWatchdogReceiver"
             android:exported="false" />
 
         <!-- Re-applies foreground listener state after reboot. -->

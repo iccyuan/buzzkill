@@ -132,8 +132,9 @@ class RuleEngine {
         // 防骚扰：仅按通知类别识别营销/推广（Notification.CATEGORY_PROMO == "promo"）。
         is Trigger.PromoTrigger ->
             ctx.field(NotificationField.CATEGORY).equals(PROMO_CATEGORY, ignoreCase = true)
-        // 设备事件触发器永不匹配通知——它们由 evaluateEvent 在事件发生时单独处理。
+        // 事件驱动触发器永不匹配通知——它们由 evaluateEvent / evaluateLocationEvent 单独处理。
         is Trigger.DeviceEvent -> false
+        is Trigger.LocationTrigger -> false
     }
 
     /**
@@ -152,6 +153,36 @@ class RuleEngine {
             val matches = rule.triggers.any { it is Trigger.DeviceEvent && it.event == event }
             if (!matches) continue
             // 每条规则用独立的 ctx：事件无通知内容，仅承载设备状态供条件/模板使用。
+            val ctx = MatchContext(selfPackage, selfAppName, mutableMapOf(), false, false, device)
+            if (!conditionsHold(rule, ctx)) continue
+            applyActions(rule, ctx, decision)
+            decision.matched = true
+            decision.firedRuleIds.add(rule.id)
+            startCooldownIfAny(rule, ctx)
+        }
+        return decision
+    }
+
+    /**
+     * 位置事件路径：进入/离开某围栏（[fenceKey]）的那一刻，对监听该围栏且方向匹配的规则
+     * 评估条件并执行动作。与 [evaluateEvent] 同构，只是触发器是 [Trigger.LocationTrigger]。
+     */
+    fun evaluateLocationEvent(
+        fenceKey: String,
+        entered: Boolean,
+        rules: List<Rule>,
+        device: DeviceContext,
+        selfPackage: String,
+        selfAppName: String,
+    ): Decision {
+        val want = if (entered) com.iccyuan.hush.data.model.LocationEventType.ENTER
+        else com.iccyuan.hush.data.model.LocationEventType.EXIT
+        val decision = Decision()
+        for (rule in rules) {
+            val matches = rule.triggers.any {
+                it is Trigger.LocationTrigger && it.fenceKey() == fenceKey && it.event == want
+            }
+            if (!matches) continue
             val ctx = MatchContext(selfPackage, selfAppName, mutableMapOf(), false, false, device)
             if (!conditionsHold(rule, ctx)) continue
             applyActions(rule, ctx, decision)
@@ -313,6 +344,23 @@ class RuleEngine {
                 )
                 // 抑制单条通知；摘要会在时间窗结束时统一发布。
                 decision.discard = true
+            }
+            is Action.LaunchAppAction -> {
+                if (action.packageName.isNotBlank()) {
+                    decision.sideEffects.add(SideEffect.LaunchApp(action.packageName, action.activityName))
+                }
+            }
+            is Action.RunMacroAction -> {
+                if (action.steps.isNotEmpty()) {
+                    decision.sideEffects.add(
+                        SideEffect.RunMacro(
+                            steps = action.steps,
+                            screenWidth = action.screenWidth,
+                            screenHeight = action.screenHeight,
+                            repeat = action.repeat.coerceAtLeast(1),
+                        )
+                    )
+                }
             }
         }
     }

@@ -62,8 +62,26 @@ sealed class Trigger {
         override val id: String,
         val event: DeviceEventType = DeviceEventType.WIFI_CONNECTED,
     ) : Trigger()
+
+    /**
+     * 位置事件触发器：在进入/离开某个地理围栏的那一刻触发规则的动作（与通知无关）。
+     * 由系统级地理围栏监控，省电；与 [Trigger.DeviceEvent] 一样属于「事件驱动」。
+     */
+    @Serializable
+    @SerialName("location_event")
+    data class LocationTrigger(
+        override val id: String,
+        val latitude: Double = 0.0,
+        val longitude: Double = 0.0,
+        val radiusMeters: Int = 300,
+        val placeName: String = "",
+        val event: LocationEventType = LocationEventType.ENTER,
+    ) : Trigger() {
+        /** 同一坐标 + 半径对应同一个围栏，与 LocationCondition 共用同一套 key。 */
+        fun fenceKey(): String = "geo_${latitude}_${longitude}_${radiusMeters}"
+    }
 }
 
-/** 规则是否由设备事件驱动（含 [Trigger.DeviceEvent]）——事件规则不走通知匹配路径。 */
+/** 规则是否由事件驱动（[Trigger.DeviceEvent] / [Trigger.LocationTrigger]）——事件规则不走通知匹配路径。 */
 val Rule.isEventDriven: Boolean
-    get() = triggers.any { it is Trigger.DeviceEvent }
+    get() = triggers.any { it is Trigger.DeviceEvent || it is Trigger.LocationTrigger }
