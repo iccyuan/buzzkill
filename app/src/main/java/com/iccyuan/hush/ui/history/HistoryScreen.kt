@@ -9,6 +9,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -348,7 +349,11 @@ private fun LogRow(
     Column(
         Modifier
             .fillMaxWidth()
-            .clickable { expanded = !expanded }
+            // 去掉默认 Material 水波纹（在整行铺开显得突兀、与 iOS 风格不搭），仅保留点击展开。
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+            ) { expanded = !expanded }
             // 用连续的高度动画平滑「展开/收起」，避免默认 AnimatedVisibility 那种淡入弹跳的突兀感。
             .animateContentSize(animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing))
             .padding(horizontal = 16.dp, vertical = 10.dp),
