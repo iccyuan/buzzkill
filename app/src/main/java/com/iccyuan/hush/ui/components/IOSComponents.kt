@@ -3,9 +3,11 @@ package com.iccyuan.hush.ui.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -228,6 +230,28 @@ fun IconBadge(icon: ImageVector, color: Color, modifier: Modifier = Modifier, si
     }
 }
 
+/**
+ * iOS 风格的整行点击反馈：去掉 Material 水波纹，改为「按下时整行轻微变灰、抬起淡出」，
+ * 与原生列表观感一致。[onClick] 为 null 时不可点击、无反馈。
+ */
+@Composable
+fun Modifier.iosPressable(onClick: (() -> Unit)?): Modifier {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val pressTint = if (LocalIsDarkTheme.current) IOSColors.ControlFillDark else IOSColors.ControlFillLight
+    // 按下立即变灰，抬起约 180ms 淡出。
+    val bg by animateColorAsState(
+        targetValue = if (pressed && onClick != null) pressTint else Color.Transparent,
+        animationSpec = tween(durationMillis = if (pressed) 0 else 180),
+        label = "iosPress",
+    )
+    return if (onClick != null) {
+        this
+            .background(bg)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+    } else this
+}
+
 /** 单个 iOS 列表行：可选的前导徽章、标签、尾部内容。 */
 @Composable
 fun IOSRow(
@@ -242,7 +266,7 @@ fun IOSRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .iosPressable(onClick)
             .heightIn(min = 48.dp)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
