@@ -470,6 +470,7 @@
     <string name="launch_default_page">打开应用（默认页面）</string>
     <string name="launch_activity_only_callable">仅列出可以直接调用的页面。</string>
     <string name="launch_activity_none">该应用没有可调用的页面</string>
+    <string name="launch_test">测试</string>
     <string name="loading">加载中…</string>
 
     <!-- 打卡宏动作 (F2) -->

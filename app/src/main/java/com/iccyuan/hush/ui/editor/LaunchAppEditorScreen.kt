@@ -149,6 +149,11 @@ fun LaunchAppEditorScreen(
                         icon = Icons.Filled.Launch,
                         iconColor = IOSColors.Blue,
                         onClick = { showActivityPicker = true },
+                        trailing = {
+                            TextButton(onClick = { testLaunch(context, draft.packageName, draft.activityName) }) {
+                                Text(stringResource(R.string.launch_test))
+                            }
+                        },
                     )
                 }
             }
@@ -197,6 +202,11 @@ private fun ActivityPickerScreen(
                     icon = Icons.Filled.Apps,
                     iconColor = IOSColors.Blue,
                     onClick = { onPick("", appLabel) },
+                    trailing = {
+                        TextButton(onClick = { testLaunch(context, packageName, "") }) {
+                            Text(stringResource(R.string.launch_test))
+                        }
+                    },
                 )
                 val list = activities
                 if (list == null) {
@@ -211,6 +221,11 @@ private fun ActivityPickerScreen(
                             icon = Icons.Filled.Launch,
                             iconColor = IOSColors.Indigo,
                             onClick = { onPick(item.className, item.label) },
+                            trailing = {
+                                TextButton(onClick = { testLaunch(context, packageName, item.className) }) {
+                                    Text(stringResource(R.string.launch_test))
+                                }
+                            },
                         )
                     }
                     if (list.isEmpty()) {
@@ -225,6 +240,21 @@ private fun ActivityPickerScreen(
 }
 
 private data class ActivityItem(val className: String, val label: String)
+
+/** 「测试打开」：用与动作完全相同的方式启动，便于在选页面时确认页面对不对。 */
+private fun testLaunch(context: android.content.Context, pkg: String, activity: String) {
+    if (pkg.isBlank()) return
+    val intent = if (activity.isNotBlank()) android.content.Intent().setClassName(pkg, activity)
+    else context.packageManager.getLaunchIntentForPackage(pkg)
+    if (intent == null) {
+        android.widget.Toast.makeText(context, context.getString(R.string.launch_app_failed), android.widget.Toast.LENGTH_SHORT).show()
+        return
+    }
+    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+    runCatching { context.startActivity(intent) }.onFailure {
+        android.widget.Toast.makeText(context, context.getString(R.string.launch_app_failed), android.widget.Toast.LENGTH_SHORT).show()
+    }
+}
 
 /** 列出某应用中「可正常调用」的 Activity：exported 且 enabled，排除默认启动入口本身。 */
 private fun loadCallableActivities(context: android.content.Context, pkg: String): List<ActivityItem> {

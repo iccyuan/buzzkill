@@ -470,6 +470,7 @@
     <string name="launch_default_page">Open app (default page)</string>
     <string name="launch_activity_only_callable">Only pages that can be opened directly are listed.</string>
     <string name="launch_activity_none">No openable pages in this app</string>
+    <string name="launch_test">Test</string>
     <string name="loading">Loading…</string>
 
     <!-- Macro action (F2) -->

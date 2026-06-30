@@ -5,6 +5,9 @@ import com.iccyuan.hush.ui.components.IOSSegmented
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.layout.Arrangement
@@ -346,6 +349,8 @@ private fun LogRow(
         Modifier
             .fillMaxWidth()
             .clickable { expanded = !expanded }
+            // 用连续的高度动画平滑「展开/收起」，避免默认 AnimatedVisibility 那种淡入弹跳的突兀感。
+            .animateContentSize(animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing))
             .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -388,7 +393,7 @@ private fun LogRow(
             }
             OutcomeBadge(log)
         }
-        androidx.compose.animation.AnimatedVisibility(visible = expanded) {
+        if (expanded) {
             Column(Modifier.padding(top = 8.dp)) {
                 if (log.title.isNotBlank()) DetailLine(stringResource(R.string.detail_title), log.title)
                 if (log.text.isNotBlank()) DetailLine(stringResource(R.string.detail_text), log.text)
