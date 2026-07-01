@@ -12,17 +12,37 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
+import com.amap.api.services.core.PoiItem
+import com.amap.api.services.core.ServiceSettings
+import com.amap.api.services.poisearch.PoiResult
+import com.amap.api.services.poisearch.PoiSearch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +60,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -222,11 +243,107 @@ private fun LocationMapContent(
         }
     }
 
+    // 位置搜索状态。
+    var query by remember { mutableStateOf("") }
+    var results by remember { mutableStateOf<List<PoiHit>>(emptyList()) }
+    var searching by remember { mutableStateOf(false) }
+    val focus = LocalFocusManager.current
+
     Box(modifier.fillMaxSize()) {
         AndroidView(
             factory = { mapView },
             modifier = Modifier.fillMaxSize(),
         )
+
+        // 顶部搜索栏 + 结果下拉。
+        Column(Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(8.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .shadow(2.dp, RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MapControlBg)
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Filled.Search, null, tint = Color(0xFF8E8E93), modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                BasicTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    singleLine = true,
+                    textStyle = TextStyle(color = Color(0xFF1C1C1E), fontSize = 15.sp),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = {
+                        searching = true
+                        searchPoi(context, query) { results = it; searching = false }
+                        focus.clearFocus()
+                    }),
+                    modifier = Modifier.weight(1f),
+                    decorationBox = { inner ->
+                        if (query.isEmpty()) {
+                            Text(
+                                stringResource(R.string.map_search_hint),
+                                color = Color(0xFF8E8E93),
+                                style = TextStyle(fontSize = 15.sp),
+                            )
+                        }
+                        inner()
+                    },
+                )
+                if (query.isNotEmpty()) {
+                    Icon(
+                        Icons.Filled.Close, null, tint = Color(0xFF8E8E93),
+                        modifier = Modifier.size(18.dp).clickable { query = ""; results = emptyList() },
+                    )
+                }
+            }
+            // 结果下拉。
+            if (results.isNotEmpty()) {
+                Spacer(Modifier.size(6.dp))
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .shadow(3.dp, RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MapControlBg)
+                        .heightIn(max = 200.dp)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    results.forEach { hit ->
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    val ll = LatLng(hit.lat, hit.lng)
+                                    userPicked[0] = true
+                                    centeredOnce[0] = true
+                                    mapView.map.moveCamera(CameraUpdateFactory.newLatLngZoom(ll, 16f))
+                                    onPick(hit.lat, hit.lng)
+                                    query = hit.name
+                                    results = emptyList()
+                                    focus.clearFocus()
+                                }
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                        ) {
+                            Text(
+                                hit.name, color = Color(0xFF1C1C1E),
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            )
+                            if (hit.address.isNotBlank()) {
+                                Text(
+                                    hit.address, color = Color(0xFF8E8E93),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                        Box(Modifier.fillMaxWidth().size(1.dp).background(Color(0x14000000)))
+                    }
+                }
+            }
+        }
 
         // 自绘控件：缩放（合并在一张卡上）+ 定位，靠右垂直排列。SurfaceView 上不能磨砂，改用不透明白底。
         Column(
@@ -268,6 +385,37 @@ private fun LocationMapContent(
 
 /** 地图控件背景：近乎不透明的白色（地图为浅色，白底控件与原生地图一致）。 */
 private val MapControlBg = Color(0xF2FFFFFF)
+
+/** 一条位置搜索结果。 */
+private data class PoiHit(val name: String, val address: String, val lat: Double, val lng: Double)
+
+/** 高德 POI 关键字搜索：全国范围，取前若干条；回调在主线程，直接更新 Compose 状态。 */
+private fun searchPoi(context: Context, keyword: String, onResult: (List<PoiHit>) -> Unit) {
+    if (keyword.isBlank()) {
+        onResult(emptyList())
+        return
+    }
+    runCatching {
+        // 搜索 SDK 有独立于地图的隐私合规开关，不先同意则 POI 搜索会静默返回空。
+        ServiceSettings.updatePrivacyShow(context, true, true)
+        ServiceSettings.updatePrivacyAgree(context, true)
+        val q = PoiSearch.Query(keyword, "", "").apply { pageSize = 10; pageNum = 1 }
+        val ps = PoiSearch(context, q)
+        ps.setOnPoiSearchListener(object : PoiSearch.OnPoiSearchListener {
+            override fun onPoiSearched(result: PoiResult?, code: Int) {
+                val hits = if (code == 1000 && result != null) {
+                    result.pois.orEmpty().mapNotNull { poi ->
+                        val p = poi.latLonPoint ?: return@mapNotNull null
+                        PoiHit(poi.title.orEmpty(), poi.snippet.orEmpty(), p.latitude, p.longitude)
+                    }
+                } else emptyList()
+                onResult(hits)
+            }
+            override fun onPoiItemSearched(item: PoiItem?, code: Int) {}
+        })
+        ps.searchPOIAsyn()
+    }.onFailure { onResult(emptyList()) }
+}
 
 @Composable
 private fun MapControl(icon: ImageVector, onClick: () -> Unit) {

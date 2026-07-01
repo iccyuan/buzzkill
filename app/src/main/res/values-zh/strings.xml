@@ -456,6 +456,7 @@
     <string name="sum_loc_exit">离开 %s</string>
     <string name="loc_event_enter">进入</string>
     <string name="loc_event_exit">离开</string>
+    <string name="map_search_hint">搜索地点</string>
 
     <!-- 打开应用 / 页面 动作 (F3) -->
     <string name="cat_act_launch">打开应用</string>

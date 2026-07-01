@@ -32,8 +32,10 @@
 -keep class com.amap.api.mapcore.**{*;}
 -keep class com.amap.api.mapcore2d.**{*;}
 -keep class com.amap.api.col.**{*;}
+-keep class com.amap.apis.**{*;}
 -keep class com.autonavi.**{*;}
 -keep class com.loc.**{*;}
 -dontwarn com.amap.api.**
+-dontwarn com.amap.apis.**
 -dontwarn com.autonavi.**
 -dontwarn com.loc.**

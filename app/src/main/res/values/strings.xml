@@ -456,6 +456,7 @@
     <string name="sum_loc_exit">Leaving %s</string>
     <string name="loc_event_enter">Entering</string>
     <string name="loc_event_exit">Leaving</string>
+    <string name="map_search_hint">Search a place</string>
 
     <!-- Launch app / activity action (F3) -->
     <string name="cat_act_launch">Open app</string>
