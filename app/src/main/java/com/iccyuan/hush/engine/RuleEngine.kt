@@ -60,7 +60,7 @@ class RuleEngine {
         if (appMatches(rule, packageName) && triggersMatch(rule, ctx, captures)) {
             ctx.captures.putAll(captures)
             applyActions(rule, ctx, decision)
-            if (rule.showDanmaku && decision.discard) {
+            if (rule.showDanmaku && decision.discard && !ctx.isOngoing) {
                 decision.sideEffects.add(
                     SideEffect.Danmaku(TemplateEngine.render(DANMAKU_TEMPLATE, ctx), DANMAKU_DURATION_MS)
                 )
@@ -93,7 +93,7 @@ class RuleEngine {
 
             // 弹幕用于「替代」被屏蔽的通知，因此仅在该规则确实丢弃了通知时才显示——
             // 否则原生通知仍在、又叠加弹幕，既矛盾又会出现时有时无的竞态。
-            if (rule.showDanmaku && decision.discard) {
+            if (rule.showDanmaku && decision.discard && !ctx.isOngoing) {
                 decision.sideEffects.add(
                     SideEffect.Danmaku(TemplateEngine.render(DANMAKU_TEMPLATE, ctx), DANMAKU_DURATION_MS)
                 )

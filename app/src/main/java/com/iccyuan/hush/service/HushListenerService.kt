@@ -255,9 +255,18 @@ class HushListenerService : NotificationListenerService() {
 
         val decision = engine.evaluate(ctx, activeRules)
 
+        // 常驻通知（音乐、下载、前台服务、VPN 等）：isOngoing 只覆盖 FLAG_ONGOING_EVENT；
+        // 像 VPN 这类只设了 FLAG_NO_CLEAR 的不可清除通知也算常驻。这类通知既不写入历史，
+        // 也不应触发弹幕（否则音乐/下载会不断刷出弹幕）。
+        val isPersistent = sbn.isOngoing ||
+            (sbn.notification.flags and android.app.Notification.FLAG_NO_CLEAR) != 0
+
         // 沉浸弹幕：开启且当前处于全屏（横屏看视频/玩游戏）时，把原本仍会原生弹出的通知
         // 改为弹幕呈现——强制丢弃原生通知并注入一条弹幕，交由下方 discard 路径统一处理。
-        if (immersiveDanmaku && !decision.discard && isFullscreen() && DanmakuController.canShow(this)) {
+        // 常驻通知不参与（不替换、不弹幕）。
+        if (immersiveDanmaku && !isPersistent && !decision.discard &&
+            isFullscreen() && DanmakuController.canShow(this)
+        ) {
             decision.sideEffects.add(
                 SideEffect.Danmaku(
                     TemplateEngine.render("{app}: {title} {text}", ctx),
@@ -272,11 +281,7 @@ class HushListenerService : NotificationListenerService() {
             applyDecision(sbn, decision, appName)
             recordFires(decision)
         }
-        // 常驻通知（音乐、下载、前台服务、VPN 等）不写入历史，避免把历史刷满。
-        // isOngoing 只覆盖 FLAG_ONGOING_EVENT；像 VPN 这类只设了 FLAG_NO_CLEAR
-        // 的不可清除通知也算常驻，一并跳过。规则仍会照常对其求值——这里只跳过记录。
-        val isPersistent = sbn.isOngoing ||
-            (sbn.notification.flags and android.app.Notification.FLAG_NO_CLEAR) != 0
+        // 规则仍会照常对常驻通知求值——这里只跳过记录。
         if (logActivity && !isPersistent) logNotification(sbn, appName, decision)
     }
 

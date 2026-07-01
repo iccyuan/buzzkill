@@ -9,6 +9,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.view.Gravity
 import android.view.WindowManager
+import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import com.iccyuan.hush.util.Logger
 
@@ -58,6 +59,10 @@ object DanmakuController {
             val padH = (metrics.density * 14).toInt()
             val padV = (metrics.density * 6).toInt()
             setPadding(padH, padV, padH, padV)
+            // 关键：在 addView 之前就定位到右边缘外并隐藏，避免视图先在左侧 (x=0) 画出一帧
+            // 再跳到右侧造成「闪烁」，也确保确实是从最右侧滑入。
+            translationX = screenWidth.toFloat()
+            alpha = 0f
         }
 
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -90,12 +95,14 @@ object DanmakuController {
             return
         }
 
-        // 从右边缘外开始，然后向左平移，直至完全移出屏幕。
-        tv.translationX = screenWidth.toFloat()
+        // 布局完成（宽度已知）后：确保仍在右边缘外，淡入，再匀速向左平移直至完全移出屏幕。
         tv.post {
+            tv.translationX = screenWidth.toFloat()
+            tv.alpha = 1f
             tv.animate()
                 .translationX(-tv.width.toFloat())
                 .setDuration(durationMs.coerceIn(2000, 20000))
+                .setInterpolator(LinearInterpolator())
                 .withEndAction { runCatching { wm.removeView(tv) } }
                 .start()
         }
