@@ -65,6 +65,19 @@ object DanmakuController {
             alpha = 0f
         }
 
+        // 承载弹幕的全屏宽容器：让 TextView 能在整屏范围内平移。若窗口只有内容宽度，
+        // 平移到窗口外的部分会被裁剪，导致「从最右侧滑入」失效（只在接近左侧才可见）。
+        // 容器透明、不可聚焦、不可触摸，不拦截用户操作。
+        val container = android.widget.FrameLayout(app).apply {
+            addView(
+                tv,
+                android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                ),
+            )
+        }
+
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
@@ -72,8 +85,8 @@ object DanmakuController {
             WindowManager.LayoutParams.TYPE_PHONE
         }
         val lp = WindowManager.LayoutParams(
-            // 宽度随内容自适应，使圆角胶囊正好包住文字（而非铺满整屏）。
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            // 窗口占满屏宽（承载容器），胶囊 TextView 在其内平移；容器透明且不可触摸。
+            WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
@@ -88,22 +101,23 @@ object DanmakuController {
         }
         rowIndex = (rowIndex + 1) % ROWS
 
-        runCatching { wm.addView(tv, lp) }.onFailure {
+        runCatching { wm.addView(container, lp) }.onFailure {
             // 某些 OEM（如 ColorOS）即使已授予「显示在其他应用上层」，仍会拦截
             // 后台进程绘制悬浮窗，需额外开启「后台弹出界面」权限。记录原因便于排查。
             Logger.w("danmaku addView failed: ${it.message}")
             return
         }
 
-        // 布局完成（宽度已知）后：确保仍在右边缘外，淡入，再匀速向左平移直至完全移出屏幕。
+        // 布局完成（容器与文字宽度已知）后：从容器（全屏宽）最右侧滑入，淡入，
+        // 再匀速向左平移直至完全移出左边缘。
         tv.post {
-            tv.translationX = screenWidth.toFloat()
+            tv.translationX = container.width.toFloat().coerceAtLeast(screenWidth.toFloat())
             tv.alpha = 1f
             tv.animate()
                 .translationX(-tv.width.toFloat())
                 .setDuration(durationMs.coerceIn(2000, 20000))
                 .setInterpolator(LinearInterpolator())
-                .withEndAction { runCatching { wm.removeView(tv) } }
+                .withEndAction { runCatching { wm.removeView(container) } }
                 .start()
         }
     }

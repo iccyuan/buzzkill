@@ -36,6 +36,8 @@ class MatchContext(
     val device: DeviceContext,
     /** 该通知所属的用户空间 id：本体为主用户（通常 0），应用分身/双开为独立用户（如 999）。 */
     val userId: Int = 0,
+    /** 是否为常驻通知（VPN / 音乐 / 下载 / 前台服务等）。默认不触发弹幕。 */
+    val isPersistent: Boolean = false,
 ) {
     /** 来自正则分组的 {1}..{9} 以及来自变量的命名捕获。 */
     val captures: MutableMap<String, String> = mutableMapOf()

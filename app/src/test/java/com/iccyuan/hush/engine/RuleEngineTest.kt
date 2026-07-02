@@ -35,11 +35,12 @@ class RuleEngineTest {
         text: String = "",
         device: DeviceContext = device(),
         userId: Int = 0,
+        isPersistent: Boolean = false,
     ): MatchContext {
         val fields = mutableMapOf<NotificationField, String>()
         if (title.isNotEmpty()) fields[NotificationField.TITLE] = title
         if (text.isNotEmpty()) fields[NotificationField.TEXT] = text
-        return MatchContext(pkg, "Chat", fields, false, false, device, userId = userId)
+        return MatchContext(pkg, "Chat", fields, false, false, device, userId = userId, isPersistent = isPersistent)
     }
 
     private fun textRule(
@@ -104,6 +105,15 @@ class RuleEngineTest {
         val cloneOnly = textRule(1, "x", pkg = listOf("com.chat@999"))
         assertFalse(engine.evaluate(ctx(pkg = "com.chat", text = "x", userId = 0), listOf(cloneOnly)).matched)
         assertTrue(engine.evaluate(ctx(pkg = "com.chat", text = "x", userId = 999), listOf(cloneOnly)).matched)
+    }
+
+    @Test fun persistentNotificationSuppressesDanmaku() {
+        val rule = textRule(1, "x").copy(showDanmaku = true) // 默认丢弃动作
+        val normal = engine.evaluate(ctx(text = "x", isPersistent = false), listOf(rule))
+        assertTrue(normal.sideEffects.any { it is SideEffect.Danmaku })
+        val persistent = engine.evaluate(ctx(text = "x", isPersistent = true), listOf(rule))
+        assertFalse(persistent.sideEffects.any { it is SideEffect.Danmaku })
+        assertTrue(persistent.discard) // 仍照常丢弃，只是不弹弹幕
     }
 
     @Test fun negateInvertsTrigger() {

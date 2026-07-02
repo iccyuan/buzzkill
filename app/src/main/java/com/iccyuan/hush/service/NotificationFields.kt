@@ -43,6 +43,41 @@ object NotificationFields {
     fun hasReplyAction(sbn: StatusBarNotification): Boolean =
         sbn.notification.actions?.any { it.remoteInputs?.isNotEmpty() == true } == true
 
+    /**
+     * 是否为「常驻通知」——即不该像普通消息那样被处理的持续型通知。这类通知不写入历史、
+     * 默认也不触发弹幕（否则 VPN、音乐、下载、来电、导航等会不断刷屏）。
+     *
+     * 判定综合两类信号，尽量准确：
+     *  - **flags**：
+     *      · FLAG_ONGOING_EVENT（0x2）——进行中（音乐、录音、正在下载等）。
+     *      · FLAG_NO_CLEAR（0x20）——不可一键清除（VPN、部分前台服务、系统常驻）。
+     *      · FLAG_FOREGROUND_SERVICE（0x40）——前台服务通知（VPN、下载器、定位、同步等）。
+     *  - **category**（应用自报的语义类别）：
+     *      · service（后台服务）、transport（媒体播放）、call（通话）、
+     *        navigation（导航）、progress（进度/下载）、stopwatch（计时）、alarm（闹钟）。
+     *
+     * 注：VPN 通知常常只带 NO_CLEAR / FOREGROUND_SERVICE 而**不带** ONGOING_EVENT，
+     * 因此仅判断 isOngoing 会漏掉它——这正是「VPN 一直触发弹幕」的根因。
+     */
+    fun isPersistent(sbn: StatusBarNotification): Boolean {
+        val n = sbn.notification
+        val persistentFlags = Notification.FLAG_ONGOING_EVENT or
+            Notification.FLAG_NO_CLEAR or
+            Notification.FLAG_FOREGROUND_SERVICE
+        if (n.flags and persistentFlags != 0) return true
+        return when (n.category) {
+            Notification.CATEGORY_SERVICE,
+            Notification.CATEGORY_TRANSPORT,
+            Notification.CATEGORY_CALL,
+            Notification.CATEGORY_NAVIGATION,
+            Notification.CATEGORY_PROGRESS,
+            Notification.CATEGORY_STOPWATCH,
+            Notification.CATEGORY_ALARM,
+            -> true
+            else -> false
+        }
+    }
+
     /** 解析面向用户的应用标签，若失败则回退为包名。 */
     fun appLabel(context: Context, packageName: String): String = try {
         val pm = context.packageManager

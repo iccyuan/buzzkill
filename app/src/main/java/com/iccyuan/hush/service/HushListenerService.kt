@@ -247,6 +247,9 @@ class HushListenerService : NotificationListenerService() {
         // 应用分身（应用双开）的通知运行在非主用户空间（如 ColorOS user 999），包名与本体相同，
         // 只能靠所属用户区分。通知 key 形如 "userId|pkg|id|tag|uid"，前缀即所属 userId。
         val userId = sbn.key.substringBefore("|").toIntOrNull() ?: 0
+        // 常驻通知（VPN / 音乐 / 下载 / 前台服务 / 来电 / 导航等）：综合 flags 与 category 判定，
+        // 见 [NotificationFields.isPersistent]。这类通知不写入历史、默认也不触发弹幕。
+        val isPersistent = NotificationFields.isPersistent(sbn)
         val ctx = MatchContext(
             packageName = sbn.packageName,
             appName = appName,
@@ -255,15 +258,10 @@ class HushListenerService : NotificationListenerService() {
             hasReply = NotificationFields.hasReplyAction(sbn),
             device = device,
             userId = userId,
+            isPersistent = isPersistent,
         )
 
         val decision = engine.evaluate(ctx, activeRules)
-
-        // 常驻通知（音乐、下载、前台服务、VPN 等）：isOngoing 只覆盖 FLAG_ONGOING_EVENT；
-        // 像 VPN 这类只设了 FLAG_NO_CLEAR 的不可清除通知也算常驻。这类通知既不写入历史，
-        // 也不应触发弹幕（否则音乐/下载会不断刷出弹幕）。
-        val isPersistent = sbn.isOngoing ||
-            (sbn.notification.flags and android.app.Notification.FLAG_NO_CLEAR) != 0
 
         // 沉浸弹幕：开启且当前处于全屏（横屏看视频/玩游戏）时，把原本仍会原生弹出的通知
         // 改为弹幕呈现——强制丢弃原生通知并注入一条弹幕，交由下方 discard 路径统一处理。
