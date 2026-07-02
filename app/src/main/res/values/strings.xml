@@ -78,6 +78,11 @@
     <string name="section_options">Options</string>
     <string name="applies_all_apps">Applies to all apps</string>
     <string name="select_apps">Select apps</string>
+    <string name="app_scope_label">Scope</string>
+    <string name="app_scope_all">Main + clone</string>
+    <string name="app_scope_main">Main only</string>
+    <string name="app_scope_clone">Clone only</string>
+    <string name="app_scope_hint">For dual apps / app clones (e.g. a second WeChat). The clone shares the original\'s package name and can\'t be listed separately, so choose here whether this rule targets the main app, only the clone, or both.</string>
     <string name="show_system_apps">Show system apps</string>
     <string name="add_trigger">Add trigger</string>
     <string name="add_condition">Add condition</string>

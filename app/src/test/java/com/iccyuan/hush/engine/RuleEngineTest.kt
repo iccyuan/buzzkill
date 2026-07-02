@@ -1,6 +1,7 @@
 package com.iccyuan.hush.engine
 
 import com.iccyuan.hush.data.model.Action
+import com.iccyuan.hush.data.model.AppScope
 import com.iccyuan.hush.data.model.Condition
 import com.iccyuan.hush.data.model.DayType
 import com.iccyuan.hush.data.model.LogicMode
@@ -34,11 +35,12 @@ class RuleEngineTest {
         title: String = "",
         text: String = "",
         device: DeviceContext = device(),
+        isClone: Boolean = false,
     ): MatchContext {
         val fields = mutableMapOf<NotificationField, String>()
         if (title.isNotEmpty()) fields[NotificationField.TITLE] = title
         if (text.isNotEmpty()) fields[NotificationField.TEXT] = text
-        return MatchContext(pkg, "Chat", fields, false, false, device)
+        return MatchContext(pkg, "Chat", fields, false, false, device, isClone = isClone)
     }
 
     private fun textRule(
@@ -77,6 +79,24 @@ class RuleEngineTest {
         val rule = textRule(1, "x", pkg = listOf("com.other"))
         assertFalse(engine.evaluate(ctx(pkg = "com.chat", text = "x"), listOf(rule)).matched)
         assertTrue(engine.evaluate(ctx(pkg = "com.other", text = "x"), listOf(rule)).matched)
+    }
+
+    @Test fun appScopeAllMatchesMainAndClone() {
+        val rule = textRule(1, "x").copy(appScope = AppScope.ALL)
+        assertTrue(engine.evaluate(ctx(text = "x", isClone = false), listOf(rule)).matched)
+        assertTrue(engine.evaluate(ctx(text = "x", isClone = true), listOf(rule)).matched)
+    }
+
+    @Test fun appScopeMainOnlyExcludesClone() {
+        val rule = textRule(1, "x").copy(appScope = AppScope.MAIN)
+        assertTrue(engine.evaluate(ctx(text = "x", isClone = false), listOf(rule)).matched)
+        assertFalse(engine.evaluate(ctx(text = "x", isClone = true), listOf(rule)).matched)
+    }
+
+    @Test fun appScopeCloneOnlyExcludesMain() {
+        val rule = textRule(1, "x").copy(appScope = AppScope.CLONE)
+        assertFalse(engine.evaluate(ctx(text = "x", isClone = false), listOf(rule)).matched)
+        assertTrue(engine.evaluate(ctx(text = "x", isClone = true), listOf(rule)).matched)
     }
 
     @Test fun negateInvertsTrigger() {

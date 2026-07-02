@@ -40,6 +40,17 @@ enum class LogicMode(val label: String) {
 }
 
 /**
+ * 规则作用于应用的「本体 / 分身 / 全部」。分身（应用双开）指运行在其他用户空间
+ * （如 ColorOS 的 user 999）、包名与本体相同的克隆实例——只能靠通知所属用户区分。
+ */
+@Serializable
+enum class AppScope(val label: String) {
+    ALL("Main + clone"),
+    MAIN("Main app only"),
+    CLONE("Clone only");
+}
+
+/**
  * 规则各条件之间的组合方式（高级设置）。
  * - [SMART]（默认）：同类条件「或」（如多个时间段），且把「时间段 + 节假日」并为同一「时间」组
  *   一起「或」；不同类的组之间「与」。

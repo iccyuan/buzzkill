@@ -1,6 +1,7 @@
 package com.iccyuan.hush.engine
 
 import com.iccyuan.hush.data.model.Action
+import com.iccyuan.hush.data.model.AppScope
 import com.iccyuan.hush.data.model.Condition
 import com.iccyuan.hush.data.model.DayType
 import com.iccyuan.hush.data.model.GapOp
@@ -82,7 +83,7 @@ class RuleEngine {
         for (rule in rules) {
             // 事件驱动规则（Wi-Fi 连断等）由 evaluateEvent 处理，不参与通知匹配。
             if (rule.isEventDriven) continue
-            if (!appMatches(rule, ctx.packageName)) continue
+            if (!appMatches(rule, ctx.packageName, ctx.isClone)) continue
 
             val captures = mutableMapOf<String, String>()
             if (!triggersMatch(rule, ctx, captures)) continue
@@ -108,8 +109,16 @@ class RuleEngine {
         return decision
     }
 
-    private fun appMatches(rule: Rule, pkg: String): Boolean =
-        rule.appPackages.isEmpty() || rule.appPackages.contains(pkg)
+    private fun appMatches(rule: Rule, pkg: String, isClone: Boolean = false): Boolean {
+        val packageOk = rule.appPackages.isEmpty() || rule.appPackages.contains(pkg)
+        // 作用范围：本体只匹配主用户通知，分身只匹配克隆(非主用户)通知，全部则不限。
+        val scopeOk = when (rule.appScope) {
+            AppScope.ALL -> true
+            AppScope.MAIN -> !isClone
+            AppScope.CLONE -> isClone
+        }
+        return packageOk && scopeOk
+    }
 
     private fun triggersMatch(
         rule: Rule,

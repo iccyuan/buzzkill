@@ -78,6 +78,11 @@
     <string name="section_options">选项</string>
     <string name="applies_all_apps">应用于所有应用</string>
     <string name="select_apps">选择应用</string>
+    <string name="app_scope_label">作用范围</string>
+    <string name="app_scope_all">本体+分身</string>
+    <string name="app_scope_main">仅本体</string>
+    <string name="app_scope_clone">仅分身</string>
+    <string name="app_scope_hint">用于应用分身/双开（如第二个微信）。分身与本体包名相同、无法单独列在选择器里，故在此选择本规则作用于本体、仅分身还是两者。命中时按通知所属用户空间判定。</string>
     <string name="show_system_apps">显示系统应用</string>
     <string name="add_trigger">添加触发器</string>
     <string name="add_condition">添加条件</string>

@@ -2,6 +2,7 @@ package com.iccyuan.hush.data.db
 
 import androidx.room.TypeConverter
 import com.iccyuan.hush.data.model.Action
+import com.iccyuan.hush.data.model.AppScope
 import com.iccyuan.hush.data.model.Condition
 import com.iccyuan.hush.data.model.ConditionLogic
 import com.iccyuan.hush.data.model.GapOp
@@ -66,6 +67,14 @@ class Converters {
     @TypeConverter
     fun toActions(value: String): List<Action> =
         BuzzJson.decodeFromString(ListSerializer(Action.serializer()), value)
+
+    @TypeConverter
+    fun fromAppScope(value: AppScope): String = value.name
+
+    // 兼容未知/旧值：任何无法识别的值都回退为 ALL（= 旧的「不区分本体/分身」行为）。
+    @TypeConverter
+    fun toAppScope(value: String): AppScope =
+        runCatching { AppScope.valueOf(value) }.getOrDefault(AppScope.ALL)
 
     @TypeConverter
     fun fromLogicMode(value: LogicMode): String = value.name

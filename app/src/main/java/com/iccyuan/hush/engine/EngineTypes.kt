@@ -34,6 +34,8 @@ class MatchContext(
     val isOngoing: Boolean,
     val hasReply: Boolean,
     val device: DeviceContext,
+    /** 该通知是否来自应用分身（应用双开）——即运行在非主用户空间的克隆实例。 */
+    val isClone: Boolean = false,
 ) {
     /** 来自正则分组的 {1}..{9} 以及来自变量的命名捕获。 */
     val captures: MutableMap<String, String> = mutableMapOf()

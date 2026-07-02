@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.iccyuan.hush.data.model.NotificationLog
 import com.iccyuan.hush.data.model.Rule
 
-@Database(entities = [Rule::class, NotificationLog::class], version = 7, exportSchema = true)
+@Database(entities = [Rule::class, NotificationLog::class], version = 8, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun ruleDao(): RuleDao
@@ -48,8 +48,15 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 新增「作用范围」列（本体/分身/全部），默认 ALL，与既有规则的旧行为一致。
+                db.execSQL("ALTER TABLE rules ADD COLUMN appScope TEXT NOT NULL DEFAULT 'ALL'")
+            }
+        }
+
         private val MIGRATIONS: Array<Migration> =
-            arrayOf(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+            arrayOf(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
 
         fun get(context: Context): AppDatabase =
             instance ?: synchronized(this) {
