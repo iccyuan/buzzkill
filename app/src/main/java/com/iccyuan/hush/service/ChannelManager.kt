@@ -69,12 +69,11 @@ class ChannelManager(private val context: Context) {
         sound: SoundOverride?,
         bypassDnd: Boolean,
     ): String {
-        // 「静音」而未显式改重要性时，重发副本用 LOW 重要性：无声、无震动、且不弹横幅。
-        // 之前为保留「静默横幅」用过 HIGH，但部分 OEM（如 ColorOS）对 HIGH 横幅通知即使关掉
-        // 震动仍会给一下触感反馈，导致「静音后还震一下」。静音的首要诉求是安静，故降到 LOW，
-        // 从我方这一侧彻底消除该触感。（原通知发出瞬间由其自身渠道产生的系统级提醒，发生在监听器
-        // 收到回调之前，任何非系统应用都无法回收——这部分不在本改动可控范围内。）
-        val imp = importance ?: if (sound?.silent == true) Importance.LOW else Importance.DEFAULT
+        // 「静音」而未显式改重要性时，重发副本用 HIGH 重要性：不发声、不震动，但仍弹出横幅
+        // 并留在通知栏（「静默横幅」）——否则只进通知栏、不再弹出。这是用户明确要的行为。
+        // 代价：部分 OEM（如 ColorOS）对 HIGH 横幅即使关了震动仍会给一下轻微触感，无法从渠道层
+        // 消除（要消除就得降到 LOW，但那样横幅也不弹了）。用户权衡后选择保留横幅、接受该触感。
+        val imp = importance ?: if (sound?.silent == true) Importance.HIGH else Importance.DEFAULT
         val sig = buildString {
             append("repost_")
             append(imp.name)
