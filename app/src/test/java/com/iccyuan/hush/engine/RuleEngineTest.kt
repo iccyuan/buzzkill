@@ -107,13 +107,21 @@ class RuleEngineTest {
         assertTrue(engine.evaluate(ctx(pkg = "com.chat", text = "x", userId = 999), listOf(cloneOnly)).matched)
     }
 
-    @Test fun persistentNotificationSuppressesDanmaku() {
+    @Test fun explicitRuleDanmakuShowsEvenForPersistent() {
+        // 规则里手动开启「弹幕显示」= 显式意图（特殊场景），常驻通知也照弹。
+        // 常驻通知的排除只作用于沉浸/自动弹幕那条路（在 HushListenerService，不在纯引擎里）。
         val rule = textRule(1, "x").copy(showDanmaku = true) // 默认丢弃动作
         val normal = engine.evaluate(ctx(text = "x", isPersistent = false), listOf(rule))
         assertTrue(normal.sideEffects.any { it is SideEffect.Danmaku })
         val persistent = engine.evaluate(ctx(text = "x", isPersistent = true), listOf(rule))
-        assertFalse(persistent.sideEffects.any { it is SideEffect.Danmaku })
-        assertTrue(persistent.discard) // 仍照常丢弃，只是不弹弹幕
+        assertTrue(persistent.sideEffects.any { it is SideEffect.Danmaku })
+    }
+
+    @Test fun danmakuOnlyWhenRuleDiscards() {
+        // 未丢弃（仅标重要）→ 不弹幕，避免原生通知与弹幕并存。
+        val rule = textRule(1, "x", actions = listOf(Action.MarkImportantAction("a1"))).copy(showDanmaku = true)
+        val d = engine.evaluate(ctx(text = "x"), listOf(rule))
+        assertFalse(d.sideEffects.any { it is SideEffect.Danmaku })
     }
 
     @Test fun negateInvertsTrigger() {
